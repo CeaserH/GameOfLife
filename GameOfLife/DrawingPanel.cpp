@@ -1,0 +1,42 @@
+#include "DrawingPanel.h"
+#include "wx/graphics.h"
+#include "wx/dcbuffer.h"
+
+DrawingPanel::DrawingPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY) {
+
+	//set custome background render
+	this->SetBackgroundStyle(wxBG_STYLE_PAINT);
+
+	//binding to onpaint
+	this->Bind(wxEVT_PAINT, &DrawingPanel::OnPaint, this);
+}
+
+DrawingPanel::~DrawingPanel() {}
+
+void DrawingPanel::OnPaint(wxPaintEvent& event) {
+
+	//created to avoid flickering
+	wxAutoBufferedPaintDC dc(this);
+	dc.Clear();
+
+	//creating context for drawing
+	wxGraphicsContext* context = wxGraphicsContext::Create(dc);
+
+	//conditional for failing
+	if (!context) {
+		return;
+	}
+
+	//settings outline  color black
+	context->SetPen(*wxBLACK);
+
+	//setting fill to white
+	context->SetBrush(*wxWHITE);
+
+	//drawing a rectangle
+	context->DrawRectangle(50, 50, 100, 100);
+
+	//clean up
+	delete context;
+
+}
