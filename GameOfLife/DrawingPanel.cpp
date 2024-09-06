@@ -33,20 +33,23 @@ void DrawingPanel::OnPaint(wxPaintEvent& event) {
 	//setting fill to white
 	context->SetBrush(*wxWHITE);
 
-	//drawing a rectangle
-	//context->DrawRectangle(50, 50, 100, 100);
+	//setting panel size
+	wxSize panelSize = this->GetSize();
+	int panelWidth = panelSize.GetWidth();
+	int panelHeight = panelSize.GetHeight();
 
-	//grid size
-	int cellSize = 10;
+	//panel size and grid size
+	int cellWidth = panelWidth / gridSize;
+	int cellHeight = panelHeight / gridSize;
 
 
-	//looping to creating 15x15
+	//looping to creating grid of rectangles
 	for (int row = 0; row < gridSize; ++row) {
 		for (int col = 0; col < gridSize; ++col) {
-			int x = col * cellSize;
-			int y = row * cellSize;
+			int x = col * cellWidth;
+			int y = row * cellHeight;
 
-			context->DrawRectangle(x, y, cellSize, cellSize);
+			context->DrawRectangle(x, y, cellWidth, cellHeight);
 		}
 	}
 	//clean up
