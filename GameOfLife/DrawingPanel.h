@@ -13,5 +13,7 @@ public:
 
 	void SetPanelSize(wxSize& newSize);
 
+	void SetGridSize(int newGridSize);
+
 };
 

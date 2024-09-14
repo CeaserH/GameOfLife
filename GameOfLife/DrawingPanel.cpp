@@ -23,6 +23,13 @@ void DrawingPanel::SetPanelSize(wxSize& newSize) {
 	this->Refresh();
 }
 
+void DrawingPanel::SetGridSize(int newGridSize) {
+
+	gridSize = newGridSize;
+
+	this->Refresh();
+}
+
 void DrawingPanel::OnPaint(wxPaintEvent& event) {
 
 	//created to avoid flickering
@@ -41,7 +48,7 @@ void DrawingPanel::OnPaint(wxPaintEvent& event) {
 	context->SetPen(*wxBLACK);
 
 	//setting fill to white
-	context->SetBrush(*wxWHITE);
+	context->SetBrush(*wxBLUE);
 
 	//setting panel size
 	wxSize panelSize = this->GetSize();

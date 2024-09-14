@@ -16,9 +16,24 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0,
 	// setting sizer for mainwindow
 	this->SetSizer(sizer);
 
+	InitGameBoard();
+
+	this->Bind(wxEVT_SIZE, &MainWindow::OnSizeChange, this);
+
 }
 
 MainWindow::~MainWindow(){}
+
+void MainWindow::InitGameBoard() {
+
+	gameBoard.resize(gridSize);
+
+	for (int i = 0; i < gridSize; i++) {
+		gameBoard[i].resize(gridSize, false);
+	}
+
+	drawingPanel->SetGridSize(gridSize);
+}
 
 void MainWindow::OnSizeChange(wxSizeEvent& event) {
 
