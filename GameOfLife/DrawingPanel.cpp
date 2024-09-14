@@ -53,7 +53,7 @@ void DrawingPanel::OnPaint(wxPaintEvent& event) {
 	context->SetPen(*wxBLACK);
 
 	//setting fill to white
-	context->SetBrush(*wxBLUE);
+	//context->SetBrush(*wxBLUE);
 
 	//setting panel size
 	wxSize panelSize = this->GetSize();
@@ -73,11 +73,11 @@ void DrawingPanel::OnPaint(wxPaintEvent& event) {
 
 			if (gameBoard[row][col])
 			{
-				context->SetBrush(*wxBLUE);  // Cell is alive (black)
+				context->SetBrush(*wxLIGHT_GREY);
 			}
 			else
 			{
-				context->SetBrush(*wxWHITE);  // Cell is dead (white)
+				context->SetBrush(*wxWHITE);
 			}
 
 			context->DrawRectangle(x, y, cellWidth, cellHeight);
