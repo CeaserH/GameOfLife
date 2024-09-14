@@ -1,12 +1,16 @@
 #include "MainWindow.h"
 
-MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0, 0), wxSize(500, 500)) {
+MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0, 0), wxSize(400, 400)) {
 
+	//intitalize game board
+	InitGameBoard();
+	
+	
 	//passing this as parent, instantiating drawingpanel
-	drawingPanel = new DrawingPanel(this);
+	drawingPanel = new DrawingPanel(this, gameBoard);
 
 	//intitiating vertical orientation
-	sizer = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 
 
 	//Adding to sizer
@@ -16,7 +20,6 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0,
 	// setting sizer for mainwindow
 	this->SetSizer(sizer);
 
-	InitGameBoard();
 
 	this->Bind(wxEVT_SIZE, &MainWindow::OnSizeChange, this);
 
@@ -28,7 +31,8 @@ void MainWindow::InitGameBoard() {
 
 	gameBoard.resize(gridSize);
 
-	for (int i = 0; i < gridSize; i++) {
+	for (int i = 0; i < gridSize; ++i)
+	{
 		gameBoard[i].resize(gridSize, false);
 	}
 
