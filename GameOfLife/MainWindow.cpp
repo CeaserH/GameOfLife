@@ -10,6 +10,7 @@ wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
 	EVT_MENU(ID_PAUSE, MainWindow::OnPause)
 	EVT_MENU(ID_NEXT, MainWindow::OnNext)
 	EVT_MENU(ID_CLEAR, MainWindow::OnClear)
+	EVT_TIMER(wxID_ANY, MainWindow::OnTimer)
 wxEND_EVENT_TABLE()
 
 MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0, 0), wxSize(400, 400)) {
@@ -17,6 +18,9 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0,
 
 	statusBar = this->CreateStatusBar();
 	toolbar = CreateToolBar(wxHORIZONTAL, wxTB_DOCKABLE);
+	timer = new wxTimer(this, wxID_ANY);
+
+	interval = 50;
 
 	wxBitmap playIcon(play_xpm);
 	wxBitmap pauseIcon(pause_xpm);
@@ -59,14 +63,6 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0,
 }
 
 MainWindow::~MainWindow(){}
-
-void MainWindow::OnPlay(wxCommandEvent& event) {
-	// Implementation for the OnPlay method
-}
-
-void MainWindow::OnPause(wxCommandEvent& event) {
-	// Implementation for the OnPlay method
-}
 
 void MainWindow::InitGameBoard() {
 
@@ -206,6 +202,10 @@ void MainWindow::OnClear(wxCommandEvent& event) {
 
 	// Refresh drawing panel
 	drawingPanel->Refresh();
+}
+
+void MainWindow::OnTimer(wxTimerEvent& event) {
+	NextGeneration();
 }
 
 void MainWindow::UpdateStatusBar() {

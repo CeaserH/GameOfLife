@@ -10,10 +10,12 @@ private:
 	//panel for game grid
     wxStatusBar* statusBar;
     wxToolBar* toolbar;
+    wxTimer* timer;
     std::vector<std::vector<bool>> gameBoard;
     DrawingPanel* drawingPanel;
     int generationCount;
     int livingCellsCount;
+    int interval;
     const int gridSize = 20;
 
     void InitGameBoard();
@@ -25,12 +27,18 @@ private:
     void NextGeneration();
 
     // Event handlers
-    void OnPlay(wxCommandEvent& event);
-    void OnPause(wxCommandEvent& event);
+    void OnPlay(wxCommandEvent& event) {
+        timer->Start(interval);
+    }
+    void OnPause(wxCommandEvent& event) {
+        timer->Stop();
+    }
     void OnNext(wxCommandEvent& event) {
         NextGeneration();
     }
     void OnClear(wxCommandEvent& event);
+    void OnTimer(wxTimerEvent& event);
+    
 
     // Enum for menu and toolbar IDs
     enum {
