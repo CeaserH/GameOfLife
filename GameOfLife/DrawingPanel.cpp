@@ -2,14 +2,20 @@
 #include "wx/graphics.h"
 #include "wx/dcbuffer.h"
 
+wxBEGIN_EVENT_TABLE(DrawingPanel, wxPanel)
+	EVT_PAINT(DrawingPanel::OnPaint)
+	EVT_LEFT_UP(DrawingPanel::OnMouseUp)
+wxEND_EVENT_TABLE()
+
 DrawingPanel::DrawingPanel(wxWindow* parent, std::vector<std::vector<bool>>& gameBoard) : wxPanel(parent), gameBoard(gameBoard) {
 
 	//set custome background render
 	this->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
+	//REMOVED BECAUSE OF EVENT TABLE
 	//binding to onpaint
-	this->Bind(wxEVT_PAINT, &DrawingPanel::OnPaint, this);
-	this->Bind(wxEVT_LEFT_UP, &DrawingPanel::OnMouseUp, this);
+	//this->Bind(wxEVT_PAINT, &DrawingPanel::OnPaint, this);
+	//this->Bind(wxEVT_LEFT_UP, &DrawingPanel::OnMouseUp, this);
 }
 
 DrawingPanel::~DrawingPanel() {}

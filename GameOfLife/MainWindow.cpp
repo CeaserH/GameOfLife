@@ -1,5 +1,9 @@
 #include "MainWindow.h"
 
+wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
+	EVT_SIZE(MainWindow::OnSizeChange) // Resize event
+wxEND_EVENT_TABLE()
+
 MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0, 0), wxSize(400, 400)) {
 
 	//intitalize game board
@@ -20,8 +24,8 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0,
 	// setting sizer for mainwindow
 	this->SetSizer(sizer);
 
-
-	this->Bind(wxEVT_SIZE, &MainWindow::OnSizeChange, this);
+	//REMOVED BECAUSE OF EVENT TABLE
+	// this->Bind(wxEVT_SIZE, &MainWindow::OnSizeChange, this);
 
 }
 

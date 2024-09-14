@@ -20,5 +20,6 @@ public:
 
 	void SetGridSize(int newGridSize);
 
-};
+	wxDECLARE_EVENT_TABLE();
 
+};

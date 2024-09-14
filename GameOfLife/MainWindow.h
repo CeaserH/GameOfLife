@@ -21,5 +21,5 @@ public:
 
 	void InitGameBoard();
 
+	wxDECLARE_EVENT_TABLE();
 };
-
