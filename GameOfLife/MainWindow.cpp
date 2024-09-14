@@ -98,10 +98,28 @@ void MainWindow::OnSizeChange(wxSizeEvent& event) {
 }
 
 void MainWindow::UpdateGame() {
+	std::vector<std::vector<bool>> newGameBoard(gridSize, std::vector<bool>(gridSize, false));
+
+	for (int i = 0; i < gridSize; ++i) {
+		for (int j = 0; j < gridSize; ++j) {
+			int neighbors = CountNeighbors(i, j);
+			if (gameBoard[i][j]) {
+				if (neighbors == 2 || neighbors == 3) {
+					newGameBoard[i][j] = true;
+				}
+			}
+			else {
+				if (neighbors == 3) {
+					newGameBoard[i][j] = true;
+				}
+			}
+		}
+	}
+
+	gameBoard = newGameBoard;
 
 	generationCount++;
 	livingCellsCount = CountLivingCells();
-
 	UpdateStatusBar();
 }
 
@@ -123,4 +141,22 @@ void MainWindow::UpdateStatusBar() {
 }
 
 
+int MainWindow::CountNeighbors(int row, int col) {
+	int count = 0;
 
+	for (int i = row - 1; i <= row + 1; ++i) {
+		for (int j = col - 1; j <= col + 1; ++j) {
+			// Skip the current cell
+			if (i == row && j == col) {
+				continue;
+			}
+			if (i >= 0 && i < gridSize && j >= 0 && j < gridSize) {
+				if (gameBoard[i][j]) {
+					count++;
+				}
+			}
+		}
+	}
+
+	return count;
+}

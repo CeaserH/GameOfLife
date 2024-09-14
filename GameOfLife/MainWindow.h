@@ -21,6 +21,7 @@ private:
     void UpdateGame();
     int CountLivingCells();
     void UpdateStatusBar();
+    int CountNeighbors(int x, int y);
 
     // Event handlers
     void OnPlay(wxCommandEvent& event);
