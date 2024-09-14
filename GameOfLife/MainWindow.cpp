@@ -135,12 +135,6 @@ int MainWindow::CountLivingCells() {
 	return count;
 }
 
-void MainWindow::UpdateStatusBar() {
-	wxString statusText = wxString::Format("Generations: %d | Living Cells: %d", generationCount, livingCellsCount);
-	statusBar->SetStatusText(statusText);
-}
-
-
 int MainWindow::CountNeighbors(int row, int col) {
 	int count = 0;
 
@@ -159,4 +153,41 @@ int MainWindow::CountNeighbors(int row, int col) {
 	}
 
 	return count;
+}
+
+void MainWindow::NextGeneration() {
+	std::vector<std::vector<bool>> newGameBoard(gridSize, std::vector<bool>(gridSize, false));
+	int livingCount = 0;
+
+	for (int i = 0; i < gridSize; ++i) {
+		for (int j = 0; j < gridSize; ++j) {
+			int neighbors = CountNeighbors(i, j);
+
+			if (gameBoard[i][j]) {
+				if (neighbors == 2 || neighbors == 3) {
+					newGameBoard[i][j] = true;
+					livingCount++;
+				}
+			}
+			else {
+				if (neighbors == 3) {
+					newGameBoard[i][j] = true;
+					livingCount++;
+				}
+			}
+		}
+	}
+
+	gameBoard = newGameBoard;
+	livingCellsCount = livingCount;
+
+	generationCount++;
+	UpdateStatusBar();
+
+	drawingPanel->Refresh();
+}
+
+void MainWindow::UpdateStatusBar() {
+	wxString statusText = wxString::Format("Generations: %d | Living Cells: %d", generationCount, livingCellsCount);
+	statusBar->SetStatusText(statusText);
 }

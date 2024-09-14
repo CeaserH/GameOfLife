@@ -22,10 +22,14 @@ private:
     int CountLivingCells();
     void UpdateStatusBar();
     int CountNeighbors(int x, int y);
+    void NextGeneration();
 
     // Event handlers
     void OnPlay(wxCommandEvent& event);
     void OnPause(wxCommandEvent& event);
+    void OnNext(wxCommandEvent& event) {
+        NextGeneration();
+    }
 
     // Enum for menu and toolbar IDs
     enum {
