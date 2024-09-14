@@ -212,3 +212,6 @@ void MainWindow::UpdateStatusBar() {
 	wxString statusText = wxString::Format("Generations: %d | Living Cells: %d", generationCount, livingCellsCount);
 	statusBar->SetStatusText(statusText);
 }
+
+
+
