@@ -15,6 +15,12 @@ private:
 
 	std::vector<std::vector<bool>> gameBoard;
 
+	int generationCount;
+	int livingCellsCount;
+	wxStatusBar* statusBar;
+
+	void UpdateStatusBar();
+
 public:
 	MainWindow();
 	~MainWindow();
