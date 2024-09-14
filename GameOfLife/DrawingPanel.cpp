@@ -13,6 +13,16 @@ DrawingPanel::DrawingPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY) {
 
 DrawingPanel::~DrawingPanel() {}
 
+void DrawingPanel::SetPanelSize(wxSize& newSize) {
+
+	//setting size of panel
+	this->SetSize(newSize);
+	//gridSize = static_cast<int>(std::ceil(std::min(newSize.GetWidth(), newSize.GetHeight()) / 10.0));
+
+	//refreshing panel
+	this->Refresh();
+}
+
 void DrawingPanel::OnPaint(wxPaintEvent& event) {
 
 	//created to avoid flickering

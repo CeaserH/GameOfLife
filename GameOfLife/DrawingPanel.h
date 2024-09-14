@@ -11,5 +11,7 @@ public:
 	DrawingPanel(wxWindow* parent);
 	~DrawingPanel();
 
+	void SetPanelSize(wxSize& newSize);
+
 };
 
