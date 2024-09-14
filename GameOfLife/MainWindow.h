@@ -20,6 +20,8 @@ private:
 	wxStatusBar* statusBar;
 
 	void UpdateStatusBar();
+	void UpdateGame();
+	int CountLivingCells();
 
 public:
 	MainWindow();

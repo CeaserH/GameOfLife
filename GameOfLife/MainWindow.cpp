@@ -8,9 +8,13 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0,
 
 
 	statusBar = this->CreateStatusBar();
+
+	
 	//intitalize game board
 	InitGameBoard();
 	
+	generationCount = 0;
+	livingCellsCount = 0;
 	
 	//passing this as parent, instantiating drawingpanel
 	drawingPanel = new DrawingPanel(this, gameBoard);
@@ -36,11 +40,6 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0,
 }
 
 MainWindow::~MainWindow(){}
-
-void MainWindow::UpdateStatusBar() {
-	wxString statusText = wxString::Format("Generations: %d | Living Cells: %d", generationCount, livingCellsCount);
-	statusBar->SetStatusText(statusText);
-}
 
 void MainWindow::InitGameBoard() {
 
@@ -68,4 +67,33 @@ void MainWindow::OnSizeChange(wxSizeEvent& event) {
 	event.Skip();
 
 }
+
+void MainWindow::UpdateGame() {
+
+	generationCount++;
+	livingCellsCount = CountLivingCells();
+
+	UpdateStatusBar();
+}
+
+int MainWindow::CountLivingCells() {
+	int count = 0;
+	for (int i = 0; i < gridSize; ++i) {
+		for (int j = 0; j < gridSize; ++j) {
+			if (gameBoard[i][j]) {
+				count++;
+			}
+		}
+	}
+	return count;
+}
+
+void MainWindow::UpdateStatusBar() {
+	wxString statusText = wxString::Format("Generations: %d | Living Cells: %d", generationCount, livingCellsCount);
+	statusBar->SetStatusText(statusText);
+}
+
+
+
+
 
