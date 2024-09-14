@@ -30,6 +30,7 @@ private:
     void OnNext(wxCommandEvent& event) {
         NextGeneration();
     }
+    void OnClear(wxCommandEvent& event);
 
     // Enum for menu and toolbar IDs
     enum {

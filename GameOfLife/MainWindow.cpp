@@ -8,6 +8,8 @@ wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
 	EVT_SIZE(MainWindow::OnSizeChange)
 	EVT_MENU(ID_PLAY, MainWindow::OnPlay)
 	EVT_MENU(ID_PAUSE, MainWindow::OnPause)
+	EVT_MENU(ID_NEXT, MainWindow::OnNext)
+	EVT_MENU(ID_CLEAR, MainWindow::OnClear)
 wxEND_EVENT_TABLE()
 
 MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0, 0), wxSize(400, 400)) {
@@ -184,6 +186,25 @@ void MainWindow::NextGeneration() {
 	generationCount++;
 	UpdateStatusBar();
 
+	drawingPanel->Refresh();
+}
+
+void MainWindow::OnClear(wxCommandEvent& event) {
+	// Clear the game board
+	for (int i = 0; i < gridSize; ++i) {
+		for (int j = 0; j < gridSize; ++j) {
+			gameBoard[i][j] = false;
+		}
+	}
+
+	// Reset counters
+	generationCount = 0;
+	livingCellsCount = 0;
+
+	// Update status bar
+	UpdateStatusBar();
+
+	// Refresh drawing panel
 	drawingPanel->Refresh();
 }
 
