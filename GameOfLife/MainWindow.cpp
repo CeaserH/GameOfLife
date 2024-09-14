@@ -1,14 +1,30 @@
 #include "MainWindow.h"
+#include "play.xpm"
+#include "pause.xpm"
+#include "next.xpm"
+#include "trash.xpm"
 
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
-	EVT_SIZE(MainWindow::OnSizeChange) // Resize event
+	EVT_SIZE(MainWindow::OnSizeChange)
+	EVT_MENU(ID_PLAY, MainWindow::OnPlay)
+	EVT_MENU(ID_PAUSE, MainWindow::OnPause)
 wxEND_EVENT_TABLE()
 
 MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0, 0), wxSize(400, 400)) {
 
 
 	statusBar = this->CreateStatusBar();
+	toolbar = CreateToolBar(wxHORIZONTAL, wxTB_DOCKABLE);
 
+	wxBitmap playIcon(play_xpm);
+	wxBitmap pauseIcon(pause_xpm);
+	wxBitmap nextIcon(next_xpm);
+	wxBitmap trashIcon(trash_xpm);
+
+	toolbar->AddTool(ID_PLAY, "Play", playIcon);
+	toolbar->AddTool(ID_PAUSE, "Pause", pauseIcon);
+	toolbar->AddTool(ID_NEXT, "Next", nextIcon);
+	toolbar->AddTool(ID_CLEAR, "Clear", trashIcon);
 	
 	//intitalize game board
 	InitGameBoard();
@@ -34,12 +50,21 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0,
 	// this->Bind(wxEVT_SIZE, &MainWindow::OnSizeChange, this);
 
 	UpdateStatusBar();
+	toolbar->Realize();
 
 	this->Layout();
 
 }
 
 MainWindow::~MainWindow(){}
+
+void MainWindow::OnPlay(wxCommandEvent& event) {
+	// Implementation for the OnPlay method
+}
+
+void MainWindow::OnPause(wxCommandEvent& event) {
+	// Implementation for the OnPlay method
+}
 
 void MainWindow::InitGameBoard() {
 
@@ -54,10 +79,14 @@ void MainWindow::InitGameBoard() {
 }
 
 void MainWindow::OnSizeChange(wxSizeEvent& event) {
-
+	
 	// getting size or new size of window
 	wxSize newSize = this->GetSize();
 
+
+	if (drawingPanel != nullptr) {
+		drawingPanel->SetSize(newSize);
+	}
 	//setting new size for drawingpanel
 	drawingPanel->SetPanelSize(newSize);
 
@@ -92,8 +121,6 @@ void MainWindow::UpdateStatusBar() {
 	wxString statusText = wxString::Format("Generations: %d | Living Cells: %d", generationCount, livingCellsCount);
 	statusBar->SetStatusText(statusText);
 }
-
-
 
 
 
