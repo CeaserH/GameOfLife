@@ -20,6 +20,10 @@ DrawingPanel::DrawingPanel(wxWindow* parent, std::vector<std::vector<bool>>& gam
 
 DrawingPanel::~DrawingPanel() {}
 
+void DrawingPanel::SetSettings(Settings* settings) {
+	this->settings = settings;
+}
+
 void DrawingPanel::SetPanelSize(wxSize& newSize) {
 
 	//setting size of panel
@@ -36,7 +40,7 @@ void DrawingPanel::SetGridSize(int newGridSize) {
 		return;
 	}
 
-	gridSize = newGridSize;
+	settings->gridSize = newGridSize;
 
 	this->Refresh();
 }
@@ -67,13 +71,13 @@ void DrawingPanel::OnPaint(wxPaintEvent& event) {
 	int panelHeight = panelSize.GetHeight();
 
 	//panel size and grid size
-	int cellWidth = panelWidth / gridSize;
-	int cellHeight = panelHeight / gridSize;
+	int cellWidth = panelWidth / settings->gridSize;
+	int cellHeight = panelHeight / settings->gridSize;
 
 
 	//looping to creating grid of rectangles
-	for (int row = 0; row < gridSize; ++row) {
-		for (int col = 0; col < gridSize; ++col) {
+	for (int row = 0; row < settings->gridSize; ++row) {
+		for (int col = 0; col < settings->gridSize; ++col) {
 			int x = col * cellWidth;
 			int y = row * cellHeight;
 
@@ -106,15 +110,15 @@ void DrawingPanel::OnMouseUp(wxMouseEvent& event) {
 	int panelHeight = panelSize.GetHeight();
 
 	//calculate cell size based on panel and grid sizes
-	int cellWidth = panelWidth / gridSize;
-	int cellHeight = panelHeight / gridSize;
+	int cellWidth = panelWidth / settings->gridSize;
+	int cellHeight = panelHeight / settings->gridSize;
 
 	//calulate row and column clicked
 	int col = mouseX / cellWidth;
 	int row = mouseY / cellHeight;
 
 	//toggle if clicked cell
-	if (row >= 0 && row < gridSize && col >= 0 && col < gridSize) {
+	if (row >= 0 && row < settings->gridSize && col >= 0 && col < settings->gridSize) {
 		gameBoard[row][col] = !gameBoard[row][col];
 	}
 

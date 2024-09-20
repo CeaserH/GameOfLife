@@ -41,6 +41,8 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0,
 	//passing this as parent, instantiating drawingpanel
 	drawingPanel = new DrawingPanel(this, gameBoard);
 
+	drawingPanel->SetSettings(&settings);
+
 	//intitiating vertical orientation
 	wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -64,16 +66,17 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0,
 
 MainWindow::~MainWindow(){}
 
+
 void MainWindow::InitGameBoard() {
 
-	gameBoard.resize(gridSize);
+	gameBoard.resize(settings.gridSize);
 
-	for (int i = 0; i < gridSize; ++i)
+	for (int i = 0; i < settings.gridSize; ++i)
 	{
-		gameBoard[i].resize(gridSize, false);
+		gameBoard[i].resize(settings.gridSize, false);
 	}
 
-	drawingPanel->SetGridSize(gridSize);
+	drawingPanel->SetGridSize(settings.gridSize);
 }
 
 void MainWindow::OnSizeChange(wxSizeEvent& event) {
@@ -96,10 +99,10 @@ void MainWindow::OnSizeChange(wxSizeEvent& event) {
 }
 
 void MainWindow::UpdateGame() {
-	std::vector<std::vector<bool>> newGameBoard(gridSize, std::vector<bool>(gridSize, false));
+	std::vector<std::vector<bool>> newGameBoard(settings.gridSize, std::vector<bool>(settings.gridSize, false));
 
-	for (int i = 0; i < gridSize; ++i) {
-		for (int j = 0; j < gridSize; ++j) {
+	for (int i = 0; i < settings.gridSize; ++i) {
+		for (int j = 0; j < settings.gridSize; ++j) {
 			int neighbors = CountNeighbors(i, j);
 			if (gameBoard[i][j]) {
 				if (neighbors == 2 || neighbors == 3) {
@@ -123,8 +126,8 @@ void MainWindow::UpdateGame() {
 
 int MainWindow::CountLivingCells() {
 	int count = 0;
-	for (int i = 0; i < gridSize; ++i) {
-		for (int j = 0; j < gridSize; ++j) {
+	for (int i = 0; i < settings.gridSize; ++i) {
+		for (int j = 0; j < settings.gridSize; ++j) {
 			if (gameBoard[i][j]) {
 				count++;
 			}
@@ -142,7 +145,7 @@ int MainWindow::CountNeighbors(int row, int col) {
 			if (i == row && j == col) {
 				continue;
 			}
-			if (i >= 0 && i < gridSize && j >= 0 && j < gridSize) {
+			if (i >= 0 && i < settings.gridSize && j >= 0 && j < settings.gridSize) {
 				if (gameBoard[i][j]) {
 					count++;
 				}
@@ -154,11 +157,11 @@ int MainWindow::CountNeighbors(int row, int col) {
 }
 
 void MainWindow::NextGeneration() {
-	std::vector<std::vector<bool>> newGameBoard(gridSize, std::vector<bool>(gridSize, false));
+	std::vector<std::vector<bool>> newGameBoard(settings.gridSize, std::vector<bool>(settings.gridSize, false));
 	int livingCount = 0;
 
-	for (int i = 0; i < gridSize; ++i) {
-		for (int j = 0; j < gridSize; ++j) {
+	for (int i = 0; i < settings.gridSize; ++i) {
+		for (int j = 0; j < settings.gridSize; ++j) {
 			int neighbors = CountNeighbors(i, j);
 
 			if (gameBoard[i][j]) {
@@ -184,11 +187,22 @@ void MainWindow::NextGeneration() {
 
 	drawingPanel->Refresh();
 }
+void MainWindow::OnPlay(wxCommandEvent& event) {
+	timer->Start(interval);
+}
+
+void MainWindow::OnPause(wxCommandEvent& event) {
+	timer->Stop();
+}
+
+void MainWindow::OnNext(wxCommandEvent& event) {
+	NextGeneration();
+}
 
 void MainWindow::OnClear(wxCommandEvent& event) {
 	// Clear the game board
-	for (int i = 0; i < gridSize; ++i) {
-		for (int j = 0; j < gridSize; ++j) {
+	for (int i = 0; i < settings.gridSize; ++i) {
+		for (int j = 0; j < settings.gridSize; ++j) {
 			gameBoard[i][j] = false;
 		}
 	}

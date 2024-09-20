@@ -3,6 +3,7 @@
 #include "wx/event.h"
 #include "DrawingPanel.h"
 #include <vector>
+#include "Settings.h"
 
 class MainWindow : public wxFrame{
 
@@ -13,10 +14,10 @@ private:
     wxTimer* timer;
     std::vector<std::vector<bool>> gameBoard;
     DrawingPanel* drawingPanel;
+    Settings settings;
     int generationCount;
     int livingCellsCount;
     int interval;
-    const int gridSize = 20;
 
     void InitGameBoard();
     void OnSizeChange(wxSizeEvent& event);
@@ -27,15 +28,9 @@ private:
     void NextGeneration();
 
     // Event handlers
-    void OnPlay(wxCommandEvent& event) {
-        timer->Start(interval);
-    }
-    void OnPause(wxCommandEvent& event) {
-        timer->Stop();
-    }
-    void OnNext(wxCommandEvent& event) {
-        NextGeneration();
-    }
+    void OnPlay(wxCommandEvent& event);
+    void OnPause(wxCommandEvent& event);
+    void OnNext(wxCommandEvent& event);
     void OnClear(wxCommandEvent& event);
     void OnTimer(wxTimerEvent& event);
     
