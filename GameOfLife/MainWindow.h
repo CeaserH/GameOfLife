@@ -4,6 +4,7 @@
 #include "DrawingPanel.h"
 #include <vector>
 #include "Settings.h"
+#include "SettingsDialog.h"
 
 class MainWindow : public wxFrame{
 
@@ -33,14 +34,15 @@ private:
     void OnNext(wxCommandEvent& event);
     void OnClear(wxCommandEvent& event);
     void OnTimer(wxTimerEvent& event);
-    
+    void OnSettings(wxCommandEvent& event);
 
     // Enum for menu and toolbar IDs
     enum {
         ID_PLAY = wxID_HIGHEST + 1,
         ID_PAUSE,
         ID_NEXT,
-        ID_CLEAR
+        ID_CLEAR,
+        ID_SETTINGS
     };
 
     wxDECLARE_EVENT_TABLE();

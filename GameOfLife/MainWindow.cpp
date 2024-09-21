@@ -3,6 +3,8 @@
 #include "pause.xpm"
 #include "next.xpm"
 #include "trash.xpm"
+#include "settings.xpm"
+
 
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
 	EVT_SIZE(MainWindow::OnSizeChange)
@@ -11,6 +13,7 @@ wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
 	EVT_MENU(ID_NEXT, MainWindow::OnNext)
 	EVT_MENU(ID_CLEAR, MainWindow::OnClear)
 	EVT_TIMER(wxID_ANY, MainWindow::OnTimer)
+	EVT_MENU(ID_SETTINGS, MainWindow::OnSettings)
 wxEND_EVENT_TABLE()
 
 MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0, 0), wxSize(400, 400)) {
@@ -26,11 +29,13 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0,
 	wxBitmap pauseIcon(pause_xpm);
 	wxBitmap nextIcon(next_xpm);
 	wxBitmap trashIcon(trash_xpm);
+	wxBitmap settingsIcon(settings_xpm);
 
 	toolbar->AddTool(ID_PLAY, "Play", playIcon);
 	toolbar->AddTool(ID_PAUSE, "Pause", pauseIcon);
 	toolbar->AddTool(ID_NEXT, "Next", nextIcon);
 	toolbar->AddTool(ID_CLEAR, "Clear", trashIcon);
+	toolbar->AddTool(ID_SETTINGS, "Settings", settingsIcon);
 	
 	//intitalize game board
 	InitGameBoard();
@@ -66,6 +71,15 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0,
 
 MainWindow::~MainWindow(){}
 
+void MainWindow::OnSettings(wxCommandEvent& event) {
+	// Create and show the settings dialog
+	SettingsDialog settingsDialog(this, &settings);
+	if (settingsDialog.ShowModal() == wxID_OK) {
+		InitGameBoard();  // Reinitialize the game board with new settings
+		drawingPanel->SetGridSize(settings.gridSize);  // Update the grid size in the drawing panel
+		drawingPanel->Refresh();  // Refresh the drawing panel to reflect new settings
+	}
+}
 
 void MainWindow::InitGameBoard() {
 
