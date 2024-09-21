@@ -27,6 +27,7 @@ private:
     void UpdateStatusBar();
     int CountNeighbors(int x, int y);
     void NextGeneration();
+    void CreateMenuBar();
 
     // Event handlers
     void OnPlay(wxCommandEvent& event);
@@ -35,6 +36,7 @@ private:
     void OnClear(wxCommandEvent& event);
     void OnTimer(wxTimerEvent& event);
     void OnSettings(wxCommandEvent& event);
+    void OnMenuSettings(wxCommandEvent& event);
 
     // Enum for menu and toolbar IDs
     enum {
@@ -42,7 +44,8 @@ private:
         ID_PAUSE,
         ID_NEXT,
         ID_CLEAR,
-        ID_SETTINGS
+        ID_SETTINGS,
+        ID_MENU_SETTINGS
     };
 
     wxDECLARE_EVENT_TABLE();

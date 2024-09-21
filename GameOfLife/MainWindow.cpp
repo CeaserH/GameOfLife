@@ -14,6 +14,7 @@ wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
 	EVT_MENU(ID_CLEAR, MainWindow::OnClear)
 	EVT_TIMER(wxID_ANY, MainWindow::OnTimer)
 	EVT_MENU(ID_SETTINGS, MainWindow::OnSettings)
+	EVT_MENU(ID_MENU_SETTINGS, MainWindow::OnMenuSettings)
 wxEND_EVENT_TABLE()
 
 MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0, 0), wxSize(400, 400)) {
@@ -67,18 +68,37 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0,
 
 	this->Layout();
 
+	CreateMenuBar();
+
 }
 
 MainWindow::~MainWindow(){}
 
-void MainWindow::OnSettings(wxCommandEvent& event) {
-	// Create and show the settings dialog
+void MainWindow::CreateMenuBar() {
+
+	wxMenuBar* menuBar = new wxMenuBar();
+
+	wxMenu* optionsMenu = new wxMenu();
+	optionsMenu->Append(ID_MENU_SETTINGS, "Settings\tCtrl+S", "Open settings dialog");
+
+	menuBar->Append(optionsMenu, "&Options");
+
+	this->SetMenuBar(menuBar);
+
+}
+
+void MainWindow::OnMenuSettings(wxCommandEvent& event) {
 	SettingsDialog settingsDialog(this, &settings);
 	if (settingsDialog.ShowModal() == wxID_OK) {
-		InitGameBoard();  // Reinitialize the game board with new settings
-		drawingPanel->SetGridSize(settings.gridSize);  // Update the grid size in the drawing panel
-		drawingPanel->Refresh();  // Refresh the drawing panel to reflect new settings
+		InitGameBoard();
+		drawingPanel->SetGridSize(settings.gridSize);
+		drawingPanel->Refresh();
 	}
+}
+
+void MainWindow::OnSettings(wxCommandEvent& event) {
+	// Create and show the settings dialog
+	OnMenuSettings(event);
 }
 
 void MainWindow::InitGameBoard() {
