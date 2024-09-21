@@ -15,6 +15,7 @@ wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
 	EVT_TIMER(wxID_ANY, MainWindow::OnTimer)
 	EVT_MENU(ID_SETTINGS, MainWindow::OnSettings)
 	EVT_MENU(ID_MENU_SETTINGS, MainWindow::OnMenuSettings)
+	EVT_MENU(ID_SHOW_NEIGHBOR_COUNT, MainWindow::OnShowNeighborCount)
 wxEND_EVENT_TABLE()
 
 MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0, 0), wxSize(400, 400)) {
@@ -23,6 +24,8 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0,
 	statusBar = this->CreateStatusBar();
 	toolbar = CreateToolBar(wxHORIZONTAL, wxTB_DOCKABLE);
 	timer = new wxTimer(this, wxID_ANY);
+	wxMenuBar* menuBar = new wxMenuBar();
+	wxMenu* viewMenu = new wxMenu();
 
 	interval = 50;
 
@@ -60,19 +63,21 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0,
 	// setting sizer for mainwindow
 	this->SetSizer(sizer);
 
-	//REMOVED BECAUSE OF EVENT TABLE
-	// this->Bind(wxEVT_SIZE, &MainWindow::OnSizeChange, this);
-
 	UpdateStatusBar();
 	toolbar->Realize();
-
 	this->Layout();
 
 	CreateMenuBar();
 
+	viewMenu->AppendCheckItem(ID_SHOW_NEIGHBOR_COUNT, "Show Neighbor Count", "Display the number of living neighbors");
+	viewMenu->Check(ID_SHOW_NEIGHBOR_COUNT, settings.showNeighborCount);
+	menuBar->Append(viewMenu, "View");
+	SetMenuBar(menuBar);
+
 }
 
 MainWindow::~MainWindow(){}
+
 
 void MainWindow::CreateMenuBar() {
 
@@ -87,8 +92,14 @@ void MainWindow::CreateMenuBar() {
 
 }
 
+void MainWindow::OnShowNeighborCount(wxCommandEvent& event) {
+	settings.showNeighborCount = event.IsChecked();
+	drawingPanel->SetShowNeighborCount(settings.showNeighborCount);
+	drawingPanel->Refresh();
+}
+
 void MainWindow::OnMenuSettings(wxCommandEvent& event) {
-	SettingsDialog settingsDialog(this, &settings);
+	SettingsDialog settingsDialog(this, &settings, drawingPanel);
 	if (settingsDialog.ShowModal() == wxID_OK) {
 		InitGameBoard();
 		drawingPanel->SetGridSize(settings.gridSize);

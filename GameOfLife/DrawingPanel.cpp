@@ -11,11 +11,6 @@ DrawingPanel::DrawingPanel(wxWindow* parent, std::vector<std::vector<bool>>& gam
 
 	//set custome background render
 	this->SetBackgroundStyle(wxBG_STYLE_PAINT);
-
-	//REMOVED BECAUSE OF EVENT TABLE
-	//binding to onpaint
-	//this->Bind(wxEVT_PAINT, &DrawingPanel::OnPaint, this);
-	//this->Bind(wxEVT_LEFT_UP, &DrawingPanel::OnMouseUp, this);
 }
 
 DrawingPanel::~DrawingPanel() {}
@@ -28,7 +23,6 @@ void DrawingPanel::SetPanelSize(wxSize& newSize) {
 
 	//setting size of panel
 	this->SetSize(newSize);
-	//gridSize = static_cast<int>(std::ceil(std::min(newSize.GetWidth(), newSize.GetHeight()) / 10.0));
 
 	//refreshing panel
 	this->Refresh();
@@ -62,9 +56,6 @@ void DrawingPanel::OnPaint(wxPaintEvent& event) {
 	//settings outline  color black
 	context->SetPen(*wxBLACK);
 
-	//setting fill to white
-	//context->SetBrush(*wxBLUE);
-
 	//setting panel size
 	wxSize panelSize = this->GetSize();
 	int panelWidth = panelSize.GetWidth();
@@ -81,16 +72,17 @@ void DrawingPanel::OnPaint(wxPaintEvent& event) {
 			int x = col * cellWidth;
 			int y = row * cellHeight;
 
-			if (gameBoard[row][col])
-			{
-				context->SetBrush(*wxLIGHT_GREY);
-			}
-			else
-			{
-				context->SetBrush(*wxWHITE);
-			}
-
+			context->SetBrush(gameBoard[row][col] ? settings->GetLivingCellColor() : settings->GetDeadCellColor());
 			context->DrawRectangle(x, y, cellWidth, cellHeight);
+
+			// If showing neighbor counts, draw them
+			if (showNeighborCount && neighborCounts[row][col] > 0) {
+				wxString countText = wxString::Format("%d", neighborCounts[row][col]);
+				context->SetFont(wxFont(16, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL), *wxRED);
+				double textX, textY;
+				context->GetTextExtent(countText, &textX, &textY);
+				context->DrawText(countText, x + (cellWidth - textX) / 2, y + (cellHeight - textY) / 2);
+			}
 		}
 	}
 	//clean up
@@ -125,4 +117,14 @@ void DrawingPanel::OnMouseUp(wxMouseEvent& event) {
 	this->Refresh();
 
 	event.Skip();
+}
+
+void DrawingPanel::SetNeighborCounts(const std::vector<std::vector<int>>& counts) {
+	neighborCounts = counts;
+	Refresh();
+}
+
+void DrawingPanel::SetShowNeighborCount(bool show) {
+	showNeighborCount = show;
+	Refresh();
 }

@@ -37,6 +37,7 @@ private:
     void OnTimer(wxTimerEvent& event);
     void OnSettings(wxCommandEvent& event);
     void OnMenuSettings(wxCommandEvent& event);
+    void OnShowNeighborCount(wxCommandEvent& event);
 
     // Enum for menu and toolbar IDs
     enum {
@@ -45,7 +46,8 @@ private:
         ID_NEXT,
         ID_CLEAR,
         ID_SETTINGS,
-        ID_MENU_SETTINGS
+        ID_MENU_SETTINGS,
+        ID_SHOW_NEIGHBOR_COUNT
     };
 
     wxDECLARE_EVENT_TABLE();

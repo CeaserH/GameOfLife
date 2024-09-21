@@ -12,6 +12,8 @@ struct Settings {
 	unsigned int gridSize = 15;
 	unsigned int interval = 50;
 
+	bool showNeighborCount = false;
+
 	wxColour GetLivingCellColor() const {
 		return wxColour(livingCellRed, livingCellGreen, livingCellBlue, livingCellAlpha);
 	}
@@ -37,7 +39,7 @@ struct Settings {
 	void Load() {
 		std::ifstream file("settings.bin", std::ios::binary | std::ios::in);
 		if (file) {
-			file.read(reinterpret_cast<char*>(this), sizeof(Settings));
+			file.read((char*)this, sizeof(Settings));
 			file.close();
 		}
 	}
@@ -45,7 +47,7 @@ struct Settings {
 	void Save() const {
 		std::ofstream file("settings.bin", std::ios::out | std::ios::binary);
 		if (file) {
-			file.write(reinterpret_cast<const char*>(this), sizeof(Settings));
+			file.write((char*)this, sizeof(Settings));
 			file.close();
 		}
 	}

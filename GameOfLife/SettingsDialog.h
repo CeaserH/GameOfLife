@@ -3,6 +3,7 @@
 #include <wx/spinctrl.h>
 #include <wx/clrpicker.h>
 #include "Settings.h"
+#include "DrawingPanel.h"
 
 class SettingsDialog : public wxDialog {
 
@@ -13,6 +14,7 @@ private:
 	wxColourPickerCtrl* deadCellColorPicker;
 
 	Settings* settings;
+	DrawingPanel* drawingPanel;
 
 	void OnOk(wxCommandEvent& event);
 	void OnCancel(wxCommandEvent& event);
@@ -20,7 +22,7 @@ private:
 	wxDECLARE_EVENT_TABLE();
 
 public:
-	SettingsDialog(wxWindow* parent, Settings* settings);
+	SettingsDialog(wxWindow* parent, Settings* settings, DrawingPanel* drawingPanel);
 
 
 

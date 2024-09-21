@@ -7,8 +7,8 @@ wxBEGIN_EVENT_TABLE(SettingsDialog, wxDialog)
 wxEND_EVENT_TABLE()
 
 
-SettingsDialog::SettingsDialog(wxWindow* parent, Settings* settings)
-    : wxDialog(parent, wxID_ANY, "Settings", wxDefaultPosition, wxDefaultSize), settings(settings) {
+SettingsDialog::SettingsDialog(wxWindow* parent, Settings* settings, DrawingPanel* drawingPanel)
+    : wxDialog(parent, wxID_ANY, "Settings", wxDefaultPosition, wxDefaultSize), settings(settings), drawingPanel(drawingPanel) {
 
     // Main vertical box sizer
     wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
