@@ -13,6 +13,7 @@ private:
     wxStatusBar* statusBar;
     wxToolBar* toolbar;
     wxTimer* timer;
+    wxMenuBar* menuBar;
     std::vector<std::vector<bool>> gameBoard;
     DrawingPanel* drawingPanel;
     Settings settings;
@@ -28,6 +29,8 @@ private:
     int CountNeighbors(int x, int y);
     void NextGeneration();
     void CreateMenuBar();
+    void RandomizeGrid(int seed);
+    std::vector<std::vector<int>> CalculateNeighborCounts();
 
     // Event handlers
     void OnPlay(wxCommandEvent& event);
@@ -38,6 +41,8 @@ private:
     void OnSettings(wxCommandEvent& event);
     void OnMenuSettings(wxCommandEvent& event);
     void OnShowNeighborCount(wxCommandEvent& event);
+    void OnRandomize(wxCommandEvent& event);
+    void OnRandomizeWithSeed(wxCommandEvent& event);
 
     // Enum for menu and toolbar IDs
     enum {
@@ -47,7 +52,9 @@ private:
         ID_CLEAR,
         ID_SETTINGS,
         ID_MENU_SETTINGS,
-        ID_SHOW_NEIGHBOR_COUNT
+        ID_SHOW_NEIGHBOR_COUNT,
+        ID_RANDOMIZE,
+        ID_RANDOMIZE_SEED
     };
 
     wxDECLARE_EVENT_TABLE();

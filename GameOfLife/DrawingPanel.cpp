@@ -1,4 +1,5 @@
 #include "DrawingPanel.h"
+#include "Settings.h"
 #include "wx/graphics.h"
 #include "wx/dcbuffer.h"
 
@@ -7,10 +8,12 @@ wxBEGIN_EVENT_TABLE(DrawingPanel, wxPanel)
 	EVT_LEFT_UP(DrawingPanel::OnMouseUp)
 wxEND_EVENT_TABLE()
 
-DrawingPanel::DrawingPanel(wxWindow* parent, std::vector<std::vector<bool>>& gameBoard) : wxPanel(parent), gameBoard(gameBoard) {
+DrawingPanel::DrawingPanel(wxWindow* parent, std::vector<std::vector<bool>>& gameBoardRef)
+	: wxPanel(parent), gameBoard(gameBoardRef), showNeighborCount(false) {
 
 	//set custome background render
 	this->SetBackgroundStyle(wxBG_STYLE_PAINT);
+	settings = nullptr;
 }
 
 DrawingPanel::~DrawingPanel() {}
@@ -29,14 +32,57 @@ void DrawingPanel::SetPanelSize(wxSize& newSize) {
 }
 
 void DrawingPanel::SetGridSize(int newGridSize) {
-	if (!this) {
-		std::cerr << "Error: DrawingPanel object is null!" << std::endl;
+	if (!settings) {
+		std::cerr << "Error: Settings object is null!" << std::endl;
 		return;
 	}
 
 	settings->gridSize = newGridSize;
 
 	this->Refresh();
+}
+
+void DrawingPanel::SetNeighborCounts(const std::vector<std::vector<int>>& counts) {
+	if (counts.size() != settings->gridSize || counts[0].size() != settings->gridSize) {
+		std::cerr << "Error: Neighbor counts size mismatch!" << std::endl;
+		return;
+	}
+	neighborCounts = counts;
+	Refresh();
+}
+
+void DrawingPanel::SetShowNeighborCount(bool show) {
+	showNeighborCount = show;
+	Refresh();
+}
+
+void DrawingPanel::OnMouseUp(wxMouseEvent& event) {
+
+	//get click position
+	int mouseX = event.GetX();
+	int mouseY = event.GetY();
+
+	//get size of panel
+	wxSize panelSize = this->GetSize();
+	int panelWidth = panelSize.GetWidth();
+	int panelHeight = panelSize.GetHeight();
+
+	//calculate cell size based on panel and grid sizes
+	int cellWidth = panelWidth / settings->gridSize;
+	int cellHeight = panelHeight / settings->gridSize;
+
+	//calulate row and column clicked
+	int col = mouseX / cellWidth;
+	int row = mouseY / cellHeight;
+
+	//toggle if clicked cell
+	if (row >= 0 && row < settings->gridSize && col >= 0 && col < settings->gridSize) {
+		gameBoard[row][col] = !gameBoard[row][col];
+	}
+
+	this->Refresh();
+
+	event.Skip();
 }
 
 void DrawingPanel::OnPaint(wxPaintEvent& event) {
@@ -75,6 +121,8 @@ void DrawingPanel::OnPaint(wxPaintEvent& event) {
 			context->SetBrush(gameBoard[row][col] ? settings->GetLivingCellColor() : settings->GetDeadCellColor());
 			context->DrawRectangle(x, y, cellWidth, cellHeight);
 
+			//wxLogMessage("Cell (%d, %d): %s", row, col, gameBoard[row][col] ? "Alive" : "Dead");
+
 			// If showing neighbor counts, draw them
 			if (showNeighborCount && neighborCounts[row][col] > 0) {
 				wxString countText = wxString::Format("%d", neighborCounts[row][col]);
@@ -90,41 +138,3 @@ void DrawingPanel::OnPaint(wxPaintEvent& event) {
 
 }
 
-void DrawingPanel::OnMouseUp(wxMouseEvent& event) {
-
-	//get click position
-	int mouseX = event.GetX();
-	int mouseY = event.GetY();
-
-	//get size of panel
-	wxSize panelSize = this->GetSize();
-	int panelWidth = panelSize.GetWidth();
-	int panelHeight = panelSize.GetHeight();
-
-	//calculate cell size based on panel and grid sizes
-	int cellWidth = panelWidth / settings->gridSize;
-	int cellHeight = panelHeight / settings->gridSize;
-
-	//calulate row and column clicked
-	int col = mouseX / cellWidth;
-	int row = mouseY / cellHeight;
-
-	//toggle if clicked cell
-	if (row >= 0 && row < settings->gridSize && col >= 0 && col < settings->gridSize) {
-		gameBoard[row][col] = !gameBoard[row][col];
-	}
-
-	this->Refresh();
-
-	event.Skip();
-}
-
-void DrawingPanel::SetNeighborCounts(const std::vector<std::vector<int>>& counts) {
-	neighborCounts = counts;
-	Refresh();
-}
-
-void DrawingPanel::SetShowNeighborCount(bool show) {
-	showNeighborCount = show;
-	Refresh();
-}

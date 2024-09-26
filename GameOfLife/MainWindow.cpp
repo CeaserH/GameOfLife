@@ -4,6 +4,11 @@
 #include "next.xpm"
 #include "trash.xpm"
 #include "settings.xpm"
+#include <wx/numdlg.h>
+#include <vector>
+#include "DrawingPanel.h"
+#include <cstdlib>
+#include <ctime>
 
 
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
@@ -16,6 +21,8 @@ wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
 	EVT_MENU(ID_SETTINGS, MainWindow::OnSettings)
 	EVT_MENU(ID_MENU_SETTINGS, MainWindow::OnMenuSettings)
 	EVT_MENU(ID_SHOW_NEIGHBOR_COUNT, MainWindow::OnShowNeighborCount)
+	EVT_MENU(ID_RANDOMIZE, MainWindow::OnRandomize)
+	EVT_MENU(ID_RANDOMIZE_SEED, MainWindow::OnRandomizeWithSeed)
 wxEND_EVENT_TABLE()
 
 MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0, 0), wxSize(400, 400)) {
@@ -24,75 +31,91 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0,
 	statusBar = this->CreateStatusBar();
 	toolbar = CreateToolBar(wxHORIZONTAL, wxTB_DOCKABLE);
 	timer = new wxTimer(this, wxID_ANY);
-	wxMenuBar* menuBar = new wxMenuBar();
-	wxMenu* viewMenu = new wxMenu();
+	generationCount = 0;
+	livingCellsCount = 0;
 
-	interval = 50;
+	// interval = 50;
 
 	wxBitmap playIcon(play_xpm);
 	wxBitmap pauseIcon(pause_xpm);
 	wxBitmap nextIcon(next_xpm);
 	wxBitmap trashIcon(trash_xpm);
-	wxBitmap settingsIcon(settings_xpm);
 
 	toolbar->AddTool(ID_PLAY, "Play", playIcon);
 	toolbar->AddTool(ID_PAUSE, "Pause", pauseIcon);
 	toolbar->AddTool(ID_NEXT, "Next", nextIcon);
 	toolbar->AddTool(ID_CLEAR, "Clear", trashIcon);
-	toolbar->AddTool(ID_SETTINGS, "Settings", settingsIcon);
-	
-	//intitalize game board
-	InitGameBoard();
-	
-	generationCount = 0;
-	livingCellsCount = 0;
 	
 	//passing this as parent, instantiating drawingpanel
 	drawingPanel = new DrawingPanel(this, gameBoard);
-
 	drawingPanel->SetSettings(&settings);
 
 	//intitiating vertical orientation
 	wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-
-
-	//Adding to sizer
 	sizer->Add(drawingPanel, 1, wxEXPAND | wxALL, 0);
-
-
-	// setting sizer for mainwindow
 	this->SetSizer(sizer);
+	this->Layout();
 
 	UpdateStatusBar();
 	toolbar->Realize();
-	this->Layout();
 
 	CreateMenuBar();
 
-	viewMenu->AppendCheckItem(ID_SHOW_NEIGHBOR_COUNT, "Show Neighbor Count", "Display the number of living neighbors");
-	viewMenu->Check(ID_SHOW_NEIGHBOR_COUNT, settings.showNeighborCount);
-	menuBar->Append(viewMenu, "View");
-	SetMenuBar(menuBar);
+	//intitalize game board
+	InitGameBoard();
 
 }
 
-MainWindow::~MainWindow(){}
+MainWindow::~MainWindow() { delete timer; }
+
+void MainWindow::InitGameBoard() {
+	wxLogMessage("Initializing game board with grid size: %d", settings.gridSize);
+	gameBoard.resize(settings.gridSize, std::vector<bool>(settings.gridSize, false));
+	if (drawingPanel) {
+		drawingPanel->SetGridSize(settings.gridSize);
+		drawingPanel->Refresh();
+	}
+
+}
+
+void MainWindow::RandomizeGrid(int seed) {
+	std::srand(static_cast<unsigned int>(seed));
+
+	// Iterate over the game board and assign random values
+	for (int i = 0; i < settings.gridSize; ++i) {
+		for (int j = 0; j < settings.gridSize; ++j) {
+			// Assign true with a 30% probability
+			gameBoard[i][j] = (std::rand() % 100) < 30;
+		}
+	}
+
+	// Refresh the drawing panel to display the new random game board
+	drawingPanel->Refresh();
+}
 
 
-void MainWindow::CreateMenuBar() {
+void MainWindow::OnRandomize(wxCommandEvent& event) {
+	wxLogMessage("Randomizing grid with current time seed");
+	RandomizeGrid(static_cast<unsigned int>(std::time(NULL))); // Use current time as seed
+}
 
-	wxMenuBar* menuBar = new wxMenuBar();
-
-	wxMenu* optionsMenu = new wxMenu();
-	optionsMenu->Append(ID_MENU_SETTINGS, "Settings\tCtrl+S", "Open settings dialog");
-
-	menuBar->Append(optionsMenu, "&Options");
-
-	this->SetMenuBar(menuBar);
-
+void MainWindow::OnRandomizeWithSeed(wxCommandEvent& event) {
+	long seed = wxGetNumberFromUser("Enter a seed value:", "Seed:", "Randomize with Seed", 0, 0, LONG_MAX, this);
+	if (seed != -1) {  // wxGetNumberFromUser returns -1 if the user cancels
+		wxLogMessage("Randomizing grid with seed: %ld", seed);
+		RandomizeGrid(static_cast<int>(seed));
+	}
 }
 
 void MainWindow::OnShowNeighborCount(wxCommandEvent& event) {
+	if (gameBoard.empty()) {
+		wxLogError("Error: Game board is empty, cannot show neighbor counts.");
+		return;
+	}
+
+	// Calculate and set neighbor counts if needed
+	auto counts = CalculateNeighborCounts();
+	drawingPanel->SetNeighborCounts(counts);
 	settings.showNeighborCount = event.IsChecked();
 	drawingPanel->SetShowNeighborCount(settings.showNeighborCount);
 	drawingPanel->Refresh();
@@ -113,17 +136,7 @@ void MainWindow::OnSettings(wxCommandEvent& event) {
 	OnMenuSettings(event);
 }
 
-void MainWindow::InitGameBoard() {
 
-	gameBoard.resize(settings.gridSize);
-
-	for (int i = 0; i < settings.gridSize; ++i)
-	{
-		gameBoard[i].resize(settings.gridSize, false);
-	}
-
-	drawingPanel->SetGridSize(settings.gridSize);
-}
 
 void MainWindow::OnSizeChange(wxSizeEvent& event) {
 	
@@ -131,9 +144,9 @@ void MainWindow::OnSizeChange(wxSizeEvent& event) {
 	wxSize newSize = this->GetSize();
 
 
-	if (drawingPanel != nullptr) {
+	/*if (drawingPanel != nullptr) {
 		drawingPanel->SetSize(newSize);
-	}
+	}*/
 	//setting new size for drawingpanel
 	drawingPanel->SetPanelSize(newSize);
 
@@ -142,6 +155,48 @@ void MainWindow::OnSizeChange(wxSizeEvent& event) {
 	// this allows for other events to happen
 	event.Skip();
 
+}
+
+int MainWindow::CountNeighbors(int row, int col) {
+	int count = 0;
+
+	for (int i = row - 1; i <= row + 1; ++i) {
+		for (int j = col - 1; j <= col + 1; ++j) {
+			// Skip the current cell
+			if (i == row && j == col) {
+				continue;
+			}
+			if (i >= 0 && i < settings.gridSize && j >= 0 && j < settings.gridSize) {
+				if (gameBoard[i][j]) {
+					count++;
+				}
+			}
+		}
+	}
+
+	return count;
+}
+int MainWindow::CountLivingCells() {
+	int count = 0;
+	for (int i = 0; i < settings.gridSize; ++i) {
+		for (int j = 0; j < settings.gridSize; ++j) {
+			if (gameBoard[i][j]) {
+				count++;
+			}
+		}
+	}
+	return count;
+}
+
+std::vector<std::vector<int>> MainWindow::CalculateNeighborCounts() {
+	std::vector<std::vector<int>> counts(settings.gridSize, std::vector<int>(settings.gridSize, 0));
+
+	for (int i = 0; i < settings.gridSize; ++i) {
+		for (int j = 0; j < settings.gridSize; ++j) {
+			counts[i][j] = CountNeighbors(i, j);
+		}
+	}
+	return counts;
 }
 
 void MainWindow::UpdateGame() {
@@ -168,38 +223,6 @@ void MainWindow::UpdateGame() {
 	generationCount++;
 	livingCellsCount = CountLivingCells();
 	UpdateStatusBar();
-}
-
-int MainWindow::CountLivingCells() {
-	int count = 0;
-	for (int i = 0; i < settings.gridSize; ++i) {
-		for (int j = 0; j < settings.gridSize; ++j) {
-			if (gameBoard[i][j]) {
-				count++;
-			}
-		}
-	}
-	return count;
-}
-
-int MainWindow::CountNeighbors(int row, int col) {
-	int count = 0;
-
-	for (int i = row - 1; i <= row + 1; ++i) {
-		for (int j = col - 1; j <= col + 1; ++j) {
-			// Skip the current cell
-			if (i == row && j == col) {
-				continue;
-			}
-			if (i >= 0 && i < settings.gridSize && j >= 0 && j < settings.gridSize) {
-				if (gameBoard[i][j]) {
-					count++;
-				}
-			}
-		}
-	}
-
-	return count;
 }
 
 void MainWindow::NextGeneration() {
@@ -231,8 +254,25 @@ void MainWindow::NextGeneration() {
 	generationCount++;
 	UpdateStatusBar();
 
+	auto counts = CalculateNeighborCounts();
+	drawingPanel->SetNeighborCounts(counts);
+
 	drawingPanel->Refresh();
 }
+
+void MainWindow::OnTimer(wxTimerEvent& event) {
+	NextGeneration();
+}
+
+void MainWindow::UpdateStatusBar() {
+	wxString statusText = wxString::Format("Generations: %d | Living Cells: %d", generationCount, livingCellsCount);
+	statusBar->SetStatusText(statusText);
+}
+
+
+
+
+
 void MainWindow::OnPlay(wxCommandEvent& event) {
 	timer->Start(interval);
 }
@@ -260,18 +300,26 @@ void MainWindow::OnClear(wxCommandEvent& event) {
 	// Update status bar
 	UpdateStatusBar();
 
+	std::vector<std::vector<int>> emptyCounts(settings.gridSize, std::vector<int>(settings.gridSize, 0));
+	drawingPanel->SetNeighborCounts(emptyCounts);
+
 	// Refresh drawing panel
 	drawingPanel->Refresh();
 }
 
-void MainWindow::OnTimer(wxTimerEvent& event) {
-	NextGeneration();
+void MainWindow::CreateMenuBar() {
+
+	wxMenuBar* menuBar = new wxMenuBar();
+	wxMenu* optionsMenu = new wxMenu();
+	optionsMenu->Append(ID_MENU_SETTINGS, "Settings\tCtrl+S", "Open settings dialog");
+	optionsMenu->Append(ID_RANDOMIZE, "Randomize", "Randomize the game board");
+	optionsMenu->Append(ID_RANDOMIZE_SEED, "Randomize with Seed", "Randomize the game board with a seed");
+	optionsMenu->AppendCheckItem(ID_SHOW_NEIGHBOR_COUNT, "Show Neighbor Count", "Display the number of living neighbors");
+	optionsMenu->Check(ID_SHOW_NEIGHBOR_COUNT, settings.showNeighborCount);
+	//menuBar->FindItem(ID_SHOW_NEIGHBOR_COUNT)->Check(settings.showNeighborCount);
+
+	menuBar->Append(optionsMenu, "&Options");
+
+	this->SetMenuBar(menuBar);
+
 }
-
-void MainWindow::UpdateStatusBar() {
-	wxString statusText = wxString::Format("Generations: %d | Living Cells: %d", generationCount, livingCellsCount);
-	statusBar->SetStatusText(statusText);
-}
-
-
-

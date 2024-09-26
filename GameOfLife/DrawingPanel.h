@@ -7,10 +7,10 @@ class DrawingPanel : public wxPanel {
 
 private:
 	
-	Settings* settings;
+	Settings* settings = nullptr;
 	std::vector<std::vector<bool>>& gameBoard;
 	std::vector<std::vector<int>> neighborCounts;
-	bool showNeighborCount;
+	bool showNeighborCount = false;
 
 protected:
 	void OnPaint(wxPaintEvent& event);
@@ -18,6 +18,7 @@ protected:
 
 public:
 	DrawingPanel(wxWindow* parent, std::vector<std::vector<bool>>& gameBoardRef);
+
 	~DrawingPanel();
 
 	void SetSettings(Settings* settings);
