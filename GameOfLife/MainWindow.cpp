@@ -5,6 +5,11 @@
 #include "trash.xpm"
 #include "settings.xpm"
 #include <wx/numdlg.h>
+#include "wx/filedlg.h"
+#include "wx/wfstream.h"
+#include "wx/textfile.h"
+#include <fstream>
+#include <iostream>
 #include <vector>
 #include "DrawingPanel.h"
 #include <cstdlib>
@@ -18,14 +23,19 @@ wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
 	EVT_MENU(ID_NEXT, MainWindow::OnNext)
 	EVT_MENU(ID_CLEAR, MainWindow::OnClear)
 	EVT_TIMER(wxID_ANY, MainWindow::OnTimer)
+	EVT_MENU(ID_NEW, MainWindow::OnNew)
+	EVT_MENU(ID_OPEN, MainWindow::OnOpen)
+	EVT_MENU(ID_SAVE, MainWindow::OnSave)
+	EVT_MENU(ID_SAVE_AS, MainWindow::OnSaveAs)
 	EVT_MENU(ID_SETTINGS, MainWindow::OnSettings)
 	EVT_MENU(ID_MENU_SETTINGS, MainWindow::OnMenuSettings)
 	EVT_MENU(ID_SHOW_NEIGHBOR_COUNT, MainWindow::OnShowNeighborCount)
 	EVT_MENU(ID_RANDOMIZE, MainWindow::OnRandomize)
 	EVT_MENU(ID_RANDOMIZE_SEED, MainWindow::OnRandomizeWithSeed)
+	EVT_MENU(ID_EXIT, MainWindow::OnExit)
 wxEND_EVENT_TABLE()
 
-MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Game of Life", wxPoint(0, 0), wxSize(400, 400)) {
+MainWindow::MainWindow(const wxString& title) : wxFrame(nullptr, wxID_ANY, title, wxPoint(0, 0), wxSize(400, 400)) {
 
 	settings.Load();
 	statusBar = this->CreateStatusBar();
@@ -307,18 +317,141 @@ void MainWindow::OnClear(wxCommandEvent& event) {
 	drawingPanel->Refresh();
 }
 
+void MainWindow::OnNew(wxCommandEvent& event) {
+	// Clear the game board (20x20 default)
+	gameBoard = std::vector<std::vector<bool>>(20, std::vector<bool>(20, false));
+
+	// Clear the file name
+	currentFileName.clear();
+
+	// Refresh the panel or UI component displaying the board (not shown here)
+	drawingPanel->Refresh();  // Assuming you have a method to redraw the grid
+}
+
+void MainWindow::OnOpen(wxCommandEvent& event) {
+	wxFileDialog openFileDialog(this, _("Open .cells file"), "", "",
+		"Cells files (*.cells)|*.cells", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+	if (openFileDialog.ShowModal() == wxID_CANCEL) {
+		return; // User canceled
+	}
+
+	// Get the file name and load the game board from it
+	currentFileName = openFileDialog.GetPath();
+	LoadGameBoard(currentFileName);
+
+	// Refresh the panel or UI component displaying the board
+	drawingPanel->Refresh();
+}
+
+void MainWindow::OnSave(wxCommandEvent& event) {
+	if (currentFileName.IsEmpty()) {
+		OnSaveAs(event);  // If no file is selected, prompt for Save As
+	}
+	else {
+		SaveGameBoard(currentFileName);
+	}
+}
+
+void MainWindow::OnSaveAs(wxCommandEvent& event) {
+	wxFileDialog saveFileDialog(this, _("Save .cells file"), "", "",
+		"Cells files (*.cells)|*.cells", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+	if (saveFileDialog.ShowModal() == wxID_CANCEL) {
+		return; // User canceled
+	}
+
+	// Save to the new file
+	currentFileName = saveFileDialog.GetPath();
+	SaveGameBoard(currentFileName);
+}
+
+void MainWindow::OnExit(wxCommandEvent& event) {
+	Close(true); // Close the main window
+}
+
+void MainWindow::SaveGameBoard(const wxString& fileName) {
+	wxTextFile file;
+
+	// If file doesn't exist, create a new one
+	if (!wxFileExists(fileName)) {
+		file.Create(fileName);
+	}
+	else {
+		file.Open(fileName);
+		file.Clear();  // Clear the file before writing
+	}
+
+	// Write the game board to the file
+	for (const auto& row : gameBoard) {
+		wxString line;
+		for (bool cell : row) {
+			line += (cell ? '*' : '.');
+		}
+		file.AddLine(line);
+	}
+
+	file.Write();
+	file.Close();
+}
+
+void MainWindow::LoadGameBoard(const wxString& fileName) {
+	wxTextFile file(fileName);
+
+	if (!file.Exists()) {
+		wxLogError("File does not exist: %s", fileName);
+		return;
+	}
+
+	file.Open();
+
+	// Clear the current game board
+	gameBoard.clear();
+
+	for (wxString line = file.GetFirstLine(); !file.Eof(); line = file.GetNextLine()) {
+		if (line[0] == '!') {
+			continue;  // Skip comment lines starting with '!'
+		}
+
+		std::vector<bool> row;
+		for (wxChar c : line) {
+			if (c == '*') {
+				row.push_back(true);
+			}
+			else if (c == '.') {
+				row.push_back(false);
+			}
+		}
+		gameBoard.push_back(row);
+	}
+
+	file.Close();
+
+	// Resize the grid if necessary (based on the file content size)
+	int newSize = gameBoard.size();
+	// Optionally update the grid size in settings if required
+	settings.gridSize = newSize;
+
+	// Refresh the panel or UI component displaying the board
+	drawingPanel->Refresh();
+}
+
 void MainWindow::CreateMenuBar() {
 
 	wxMenuBar* menuBar = new wxMenuBar();
 	wxMenu* optionsMenu = new wxMenu();
+
+	optionsMenu->Append(ID_NEW, "New\tCtrl+N", "Clear the game board and start fresh");
+	optionsMenu->Append(ID_OPEN, "Open\tCtrl+O", "Open an existing .cells file");
+	optionsMenu->Append(ID_SAVE, "Save\tCtrl+S", "Save the current game board");
+	optionsMenu->Append(ID_SAVE_AS, "Save As", "Save the current game board to a new file");
 	optionsMenu->Append(ID_MENU_SETTINGS, "Settings\tCtrl+S", "Open settings dialog");
 	optionsMenu->Append(ID_RANDOMIZE, "Randomize", "Randomize the game board");
 	optionsMenu->Append(ID_RANDOMIZE_SEED, "Randomize with Seed", "Randomize the game board with a seed");
 	optionsMenu->AppendCheckItem(ID_SHOW_NEIGHBOR_COUNT, "Show Neighbor Count", "Display the number of living neighbors");
 	optionsMenu->Check(ID_SHOW_NEIGHBOR_COUNT, settings.showNeighborCount);
-	//menuBar->FindItem(ID_SHOW_NEIGHBOR_COUNT)->Check(settings.showNeighborCount);
+	optionsMenu->AppendSeparator();
+	optionsMenu->Append(ID_EXIT, "Exit", "Exit the application");
 
-	menuBar->Append(optionsMenu, "&Options");
+	menuBar->Append(optionsMenu, "&Menu");
 
 	this->SetMenuBar(menuBar);
 
