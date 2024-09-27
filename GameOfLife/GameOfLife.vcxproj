@@ -135,6 +135,7 @@
     <ClCompile Include="DrawingPanel.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
+    <ClCompile Include="Settings.cpp" />
     <ClCompile Include="SettingsDialog.cpp" />
   </ItemGroup>
   <ItemGroup>

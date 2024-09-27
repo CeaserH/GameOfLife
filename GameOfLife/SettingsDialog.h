@@ -19,11 +19,13 @@ private:
 	void OnOk(wxCommandEvent& event);
 	void OnCancel(wxCommandEvent& event);
 
+	
+	
+
 	wxDECLARE_EVENT_TABLE();
 
 public:
 	SettingsDialog(wxWindow* parent, Settings* settings, DrawingPanel* drawingPanel);
-
 
 
 };

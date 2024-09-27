@@ -13,6 +13,12 @@ struct Settings {
 	unsigned int interval = 50;
 
 	bool showNeighborCount = false;
+	//bool isToroidal;
+
+	enum class BoardType { Finite, Toroidal };
+	BoardType boardType;
+
+	void ResetToDefault();
 
 	wxColour GetLivingCellColor() const {
 		return wxColour(livingCellRed, livingCellGreen, livingCellBlue, livingCellAlpha);

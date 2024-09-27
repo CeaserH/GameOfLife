@@ -6,14 +6,20 @@
 #include "Settings.h"
 #include "SettingsDialog.h"
 
+class App;
+
 class MainWindow : public wxFrame{
 
 private:
 	//panel for game grid
+    App* app;
     wxStatusBar* statusBar;
     wxToolBar* toolbar;
     wxTimer* timer;
     wxMenuBar* menuBar;
+    wxMenu* viewMenu;
+    wxMenuItem* finiteMenuItem;
+    wxMenuItem* toroidalMenuItem;
     std::vector<std::vector<bool>> gameBoard;
     DrawingPanel* drawingPanel;
     Settings settings;
@@ -31,6 +37,9 @@ private:
     void CreateMenuBar();
     void RandomizeGrid(int seed);
     std::vector<std::vector<int>> CalculateNeighborCounts();
+    void UpdateViewMenuChecks();
+    void CreateOptionsMenu();
+    void ResetToDefault();
 
     // Event handlers
     void OnPlay(wxCommandEvent& event);
@@ -48,7 +57,9 @@ private:
     void OnRandomize(wxCommandEvent& event);
     void OnRandomizeWithSeed(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
-
+    void OnResetSettings(wxCommandEvent& event);
+    void OnToggleBoardType(wxCommandEvent& event);
+    
     void SaveGameBoard(const wxString& fileName);
     void LoadGameBoard(const wxString& fileName);
 
@@ -69,13 +80,18 @@ private:
         ID_SHOW_NEIGHBOR_COUNT,
         ID_RANDOMIZE,
         ID_RANDOMIZE_SEED,
+        ID_TOROIDAL,
+        ID_FINITE,
+        ID_RESET_SETTINGS,
         ID_EXIT
     };
 
     wxDECLARE_EVENT_TABLE();
 
 public:
-	MainWindow(const wxString& title);
+    MainWindow(const wxString& title, const wxPoint& pos, const wxSize& size, App* app);
 	~MainWindow();
+    void UpdateBasedOnSettings(const Settings& settings);
+    
 
 };

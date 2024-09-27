@@ -1,19 +1,25 @@
 #include "MainWindow.h"
+#include "DrawingPanel.h"
+#include "Settings.h"
+#include "App.h"
+#include <wx/numdlg.h>
+#include "wx/filedlg.h"
+#include "wx/wfstream.h"
+#include "wx/textfile.h"
+
 #include "play.xpm"
 #include "pause.xpm"
 #include "next.xpm"
 #include "trash.xpm"
 #include "settings.xpm"
-#include <wx/numdlg.h>
-#include "wx/filedlg.h"
-#include "wx/wfstream.h"
-#include "wx/textfile.h"
+
 #include <fstream>
 #include <iostream>
 #include <vector>
-#include "DrawingPanel.h"
 #include <cstdlib>
 #include <ctime>
+
+
 
 
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
@@ -32,10 +38,13 @@ wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
 	EVT_MENU(ID_SHOW_NEIGHBOR_COUNT, MainWindow::OnShowNeighborCount)
 	EVT_MENU(ID_RANDOMIZE, MainWindow::OnRandomize)
 	EVT_MENU(ID_RANDOMIZE_SEED, MainWindow::OnRandomizeWithSeed)
+	EVT_MENU(ID_TOROIDAL, MainWindow::OnToggleBoardType)
+	EVT_MENU(ID_FINITE, MainWindow::OnToggleBoardType)
+	EVT_MENU(ID_RESET_SETTINGS, MainWindow::OnResetSettings)
 	EVT_MENU(ID_EXIT, MainWindow::OnExit)
 wxEND_EVENT_TABLE()
 
-MainWindow::MainWindow(const wxString& title) : wxFrame(nullptr, wxID_ANY, title, wxPoint(0, 0), wxSize(400, 400)) {
+MainWindow::MainWindow(const wxString& title, const wxPoint& pos, const wxSize& size, App* app)	: wxFrame(nullptr, wxID_ANY, title, pos, size), app(app) {
 
 	settings.Load();
 	statusBar = this->CreateStatusBar();
@@ -43,8 +52,6 @@ MainWindow::MainWindow(const wxString& title) : wxFrame(nullptr, wxID_ANY, title
 	timer = new wxTimer(this, wxID_ANY);
 	generationCount = 0;
 	livingCellsCount = 0;
-
-	// interval = 50;
 
 	wxBitmap playIcon(play_xpm);
 	wxBitmap pauseIcon(pause_xpm);
@@ -59,6 +66,12 @@ MainWindow::MainWindow(const wxString& title) : wxFrame(nullptr, wxID_ANY, title
 	//passing this as parent, instantiating drawingpanel
 	drawingPanel = new DrawingPanel(this, gameBoard);
 	drawingPanel->SetSettings(&settings);
+
+	int cellSize = 20;  // Adjust based on your design
+	int windowWidth = settings.gridSize * cellSize + this->GetSize().GetWidth(); // Add toolbar/menu width
+	int windowHeight = settings.gridSize * cellSize + statusBar->GetSize().GetHeight(); // Add status bar height
+
+	this->SetSize(windowWidth, windowHeight);
 
 	//intitiating vertical orientation
 	wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
@@ -79,8 +92,16 @@ MainWindow::MainWindow(const wxString& title) : wxFrame(nullptr, wxID_ANY, title
 MainWindow::~MainWindow() { delete timer; }
 
 void MainWindow::InitGameBoard() {
-	wxLogMessage("Initializing game board with grid size: %d", settings.gridSize);
-	gameBoard.resize(settings.gridSize, std::vector<bool>(settings.gridSize, false));
+	//wxLogMessage("Initializing game board with grid size: %d", settings.gridSize);
+	//gameBoard.resize(settings.gridSize, std::vector<bool>(settings.gridSize, false));
+	gameBoard.resize(settings.gridSize);
+
+	// Resize each row to the correct number of columns
+	for (auto& row : gameBoard) {
+		row.resize(settings.gridSize, false); // false means 'dead cell'
+	}
+
+
 	if (drawingPanel) {
 		drawingPanel->SetGridSize(settings.gridSize);
 		drawingPanel->Refresh();
@@ -131,16 +152,6 @@ void MainWindow::OnShowNeighborCount(wxCommandEvent& event) {
 	drawingPanel->Refresh();
 }
 
-void MainWindow::OnMenuSettings(wxCommandEvent& event) {
-	SettingsDialog settingsDialog(this, &settings, drawingPanel);
-	if (settingsDialog.ShowModal() == wxID_OK) {
-		InitGameBoard();
-		drawingPanel->SetGridSize(settings.gridSize);
-		drawingPanel->Refresh();
-		settings.Save();
-	}
-}
-
 void MainWindow::OnSettings(wxCommandEvent& event) {
 	// Create and show the settings dialog
 	OnMenuSettings(event);
@@ -170,14 +181,33 @@ void MainWindow::OnSizeChange(wxSizeEvent& event) {
 int MainWindow::CountNeighbors(int row, int col) {
 	int count = 0;
 
+	//for (int i = row - 1; i <= row + 1; ++i) {
+	//	for (int j = col - 1; j <= col + 1; ++j) {
+	//		// Skip the current cell
+	//		if (i == row && j == col) {
+	//			continue;
+	//		}
+	//		if (i >= 0 && i < settings.gridSize && j >= 0 && j < settings.gridSize) {
+	//			if (gameBoard[i][j]) {
+	//				count++;
+	//			}
+	//		}
+	//	}
+	//}
+
 	for (int i = row - 1; i <= row + 1; ++i) {
 		for (int j = col - 1; j <= col + 1; ++j) {
-			// Skip the current cell
 			if (i == row && j == col) {
-				continue;
+				continue; // Skip the current cell
 			}
-			if (i >= 0 && i < settings.gridSize && j >= 0 && j < settings.gridSize) {
-				if (gameBoard[i][j]) {
+
+			// Handle toroidal wrapping
+			int neighborRow = (settings.boardType == Settings::BoardType::Toroidal) ? (i + settings.gridSize) % settings.gridSize : i;
+			int neighborCol = (settings.boardType == Settings::BoardType::Toroidal) ? (j + settings.gridSize) % settings.gridSize : j;
+
+			// Check bounds for finite board
+			if (neighborRow >= 0 && neighborRow < settings.gridSize && neighborCol >= 0 && neighborCol < settings.gridSize) {
+				if (gameBoard[neighborRow][neighborCol]) {
 					count++;
 				}
 			}
@@ -236,7 +266,7 @@ void MainWindow::UpdateGame() {
 }
 
 void MainWindow::NextGeneration() {
-	std::vector<std::vector<bool>> newGameBoard(settings.gridSize, std::vector<bool>(settings.gridSize, false));
+	/*std::vector<std::vector<bool>> newGameBoard(settings.gridSize, std::vector<bool>(settings.gridSize, false));
 	int livingCount = 0;
 
 	for (int i = 0; i < settings.gridSize; ++i) {
@@ -267,6 +297,37 @@ void MainWindow::NextGeneration() {
 	auto counts = CalculateNeighborCounts();
 	drawingPanel->SetNeighborCounts(counts);
 
+	drawingPanel->Refresh();*/
+
+	std::vector<std::vector<bool>> newGameBoard(settings.gridSize, std::vector<bool>(settings.gridSize, false));
+	int livingCount = 0;
+
+	for (int i = 0; i < settings.gridSize; ++i) {
+		for (int j = 0; j < settings.gridSize; ++j) {
+			int neighbors = CountNeighbors(i, j);
+
+			if (gameBoard[i][j]) {
+				if (neighbors == 2 || neighbors == 3) {
+					newGameBoard[i][j] = true;
+					livingCount++;
+				}
+			}
+			else {
+				if (neighbors == 3) {
+					newGameBoard[i][j] = true;
+					livingCount++;
+				}
+			}
+		}
+	}
+
+	gameBoard = newGameBoard;
+	livingCellsCount = livingCount;
+	generationCount++;
+	UpdateStatusBar();
+
+	auto counts = CalculateNeighborCounts();
+	drawingPanel->SetNeighborCounts(counts);
 	drawingPanel->Refresh();
 }
 
@@ -427,11 +488,69 @@ void MainWindow::LoadGameBoard(const wxString& fileName) {
 
 	// Resize the grid if necessary (based on the file content size)
 	int newSize = gameBoard.size();
-	// Optionally update the grid size in settings if required
+	//update the grid size in settings
 	settings.gridSize = newSize;
 
 	// Refresh the panel or UI component displaying the board
 	drawingPanel->Refresh();
+}
+
+void MainWindow::OnResetSettings(wxCommandEvent& event) {
+	// Reset settings to default
+	settings.ResetToDefault();
+
+	// Update settings file
+	app->UpdateSettings(settings);
+
+	// Apply the updated settings to the game
+	UpdateBasedOnSettings(settings);
+
+	wxLogMessage("Settings have been reset to default.");
+}
+
+void MainWindow::OnToggleBoardType(wxCommandEvent& event) {
+	wxMenuBar* menuBar = GetMenuBar();
+	wxMenu* optionsMenu = menuBar->GetMenu(0);
+	int id = event.GetId();
+	if (id == ID_TOROIDAL) {
+		settings.boardType = Settings::BoardType::Toroidal;
+		// Uncheck the finite option if toroidal is checked
+		optionsMenu->Check(ID_FINITE, false);
+		optionsMenu->Check(ID_TOROIDAL, true);
+	}
+	else if (id == ID_FINITE) {
+		settings.boardType = Settings::BoardType::Finite;
+		// Uncheck the toroidal option if finite is checked
+		optionsMenu->Check(ID_TOROIDAL, false);
+		optionsMenu->Check(ID_FINITE, true);
+	}
+
+	// Apply updated settings
+	UpdateBasedOnSettings(settings);
+}
+
+void MainWindow::UpdateBasedOnSettings(const Settings& settings) {
+	gameBoard.resize(settings.gridSize, std::vector<bool>(settings.gridSize, false));
+
+	// Update the drawing panel with the new grid size
+	drawingPanel->SetGridSize(settings.gridSize);
+	drawingPanel->Refresh();
+
+	// Optionally, reset generation and living cell counts or other state
+	generationCount = 0;
+	livingCellsCount = 0;
+	UpdateStatusBar();
+}
+
+void MainWindow::OnMenuSettings(wxCommandEvent& event) {
+	SettingsDialog settingsDialog(this, &settings, drawingPanel);
+	if (settingsDialog.ShowModal() == wxID_OK) {
+		InitGameBoard();
+		drawingPanel->SetGridSize(settings.gridSize);
+		drawingPanel->Refresh();
+		settings.Save();
+		
+	}
 }
 
 void MainWindow::CreateMenuBar() {
@@ -449,10 +568,20 @@ void MainWindow::CreateMenuBar() {
 	optionsMenu->AppendCheckItem(ID_SHOW_NEIGHBOR_COUNT, "Show Neighbor Count", "Display the number of living neighbors");
 	optionsMenu->Check(ID_SHOW_NEIGHBOR_COUNT, settings.showNeighborCount);
 	optionsMenu->AppendSeparator();
+	optionsMenu->AppendCheckItem(ID_TOROIDAL, "Toroidal", "Use a toroidal board");
+	optionsMenu->Check(ID_TOROIDAL, settings.boardType == Settings::BoardType::Toroidal);
+	optionsMenu->AppendCheckItem(ID_FINITE, "Finite", "Use a finite board");
+	optionsMenu->Check(ID_FINITE, settings.boardType == Settings::BoardType::Finite);
+	optionsMenu->AppendSeparator();
+	optionsMenu->Append(ID_RESET_SETTINGS, "Reset Settings");
 	optionsMenu->Append(ID_EXIT, "Exit", "Exit the application");
 
 	menuBar->Append(optionsMenu, "&Menu");
 
+
+
 	this->SetMenuBar(menuBar);
 
+	Bind(wxEVT_MENU, &MainWindow::OnToggleBoardType, this, ID_FINITE);
+	Bind(wxEVT_MENU, &MainWindow::OnToggleBoardType, this, ID_TOROIDAL);
 }
