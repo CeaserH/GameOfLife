@@ -13,7 +13,8 @@ struct Settings {
 	unsigned int interval = 50;
 
 	bool showNeighborCount = false;
-	//bool isToroidal;
+	bool ShowGrid = true;
+	bool Show10x10Grid = false;
 
 	enum class BoardType { Finite, Toroidal };
 	BoardType boardType;
@@ -48,6 +49,8 @@ struct Settings {
 			file.read((char*)this, sizeof(Settings));
 			file.close();
 		}
+		file >> ShowGrid;
+		file >> Show10x10Grid;
 	}
 
 	void Save() const {
@@ -56,6 +59,9 @@ struct Settings {
 			file.write((char*)this, sizeof(Settings));
 			file.close();
 		}
+
+		file << ShowGrid << std::endl;
+		file << Show10x10Grid << std::endl;
 	}
 
 };

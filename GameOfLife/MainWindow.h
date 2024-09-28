@@ -65,6 +65,8 @@ private:
     void LoadGameBoard(const wxString& fileName);
     void ImportGameBoard(const wxString& fileName);
     void OnImport(wxCommandEvent& event);
+    void OnToggleShowGrid(wxCommandEvent& event);
+    void OnToggleShow10x10Grid(wxCommandEvent& event);
 
     wxString currentFileName;
 
@@ -87,7 +89,9 @@ private:
         ID_TOROIDAL,
         ID_FINITE,
         ID_RESET_SETTINGS,
-        ID_EXIT
+        ID_EXIT,
+        ID_SHOW_GRID,
+        ID_SHOW_10x10_GRID
     };
 
     wxDECLARE_EVENT_TABLE();

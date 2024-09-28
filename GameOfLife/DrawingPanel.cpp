@@ -85,6 +85,15 @@ void DrawingPanel::OnMouseUp(wxMouseEvent& event) {
 	event.Skip();
 }
 
+void DrawingPanel::SetShowGrid(bool show) {
+	settings->ShowGrid = show;
+	Refresh();
+}
+
+void DrawingPanel::SetShow10x10Grid(bool show) {
+	settings->Show10x10Grid = show;
+}
+
 void DrawingPanel::OnPaint(wxPaintEvent& event) {
 
 	//created to avoid flickering
@@ -100,7 +109,7 @@ void DrawingPanel::OnPaint(wxPaintEvent& event) {
 	}
 
 	//settings outline  color black
-	context->SetPen(*wxBLACK);
+	//context->SetPen(*wxBLACK);
 
 	//setting panel size
 	wxSize panelSize = this->GetSize();
@@ -111,6 +120,32 @@ void DrawingPanel::OnPaint(wxPaintEvent& event) {
 	int cellWidth = panelWidth / settings->gridSize;
 	int cellHeight = panelHeight / settings->gridSize;
 
+	if (settings->ShowGrid) {
+		context->SetPen(*wxBLACK); // Set pen color for grid lines
+
+		// Draw vertical lines
+		for (int i = 1; i < settings->gridSize; ++i) {
+			int x = i * cellWidth;
+			context->StrokeLine(x, 0, x, panelHeight); // Vertical lines
+		}
+
+		// Draw horizontal lines
+		for (int i = 1; i < settings->gridSize; ++i) {
+			int y = i * cellHeight;
+			context->StrokeLine(0, y, panelWidth, y); // Horizontal lines
+		}
+	}
+
+	// Draw 10x10 grid if enabled
+	if (settings->Show10x10Grid) {
+		context->SetPen(wxPen(wxColor(0, 0, 0), 2)); // Thicker pen for 10x10 grid
+		for (int i = 10; i < settings->gridSize; i += 10) {
+			int x = i * cellWidth;
+			int y = i * cellHeight;
+			context->StrokeLine(x, 0, x, panelHeight); // Thick vertical
+			context->StrokeLine(0, y, panelWidth, y);  // Thick horizontal
+		}
+	}
 
 	//looping to creating grid of rectangles
 	for (int row = 0; row < settings->gridSize; ++row) {

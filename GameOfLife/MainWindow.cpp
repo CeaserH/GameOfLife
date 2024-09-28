@@ -614,6 +614,26 @@ void MainWindow::OnImport(wxCommandEvent& event) {
 	drawingPanel->Refresh(); // Refresh to display the updated board
 }
 
+void MainWindow::OnToggleShowGrid(wxCommandEvent& event) {
+	wxMenuBar* menuBar = GetMenuBar();
+	wxMenu* gridMenu = menuBar->GetMenu(1);
+
+	settings.ShowGrid = !settings.ShowGrid;
+	// Update menu item check status
+	gridMenu->Check(ID_SHOW_GRID, settings.ShowGrid);
+	drawingPanel->SetShowGrid(settings.ShowGrid);
+	drawingPanel->Refresh(); // Refresh the drawing panel
+}
+
+void MainWindow::OnToggleShow10x10Grid(wxCommandEvent& event) {
+	wxMenuBar* menuBar = GetMenuBar();
+	wxMenu* gridMenu = menuBar->GetMenu(1);
+	settings.Show10x10Grid = !settings.Show10x10Grid;
+	// Update menu item check status
+	gridMenu->Check(ID_SHOW_10x10_GRID, settings.Show10x10Grid);
+	Refresh(); // Refresh the drawing panel
+}
+
 void MainWindow::CreateMenuBar() {
 
 	wxMenuBar* menuBar = new wxMenuBar();
@@ -638,7 +658,12 @@ void MainWindow::CreateMenuBar() {
 	optionsMenu->Append(ID_RESET_SETTINGS, "Reset Settings");
 	optionsMenu->Append(ID_EXIT, "Exit", "Exit the application");
 
+	wxMenu* gridMenu = new wxMenu();
+	gridMenu->AppendCheckItem(ID_SHOW_GRID, "Show Grid");
+	gridMenu->AppendCheckItem(ID_SHOW_10x10_GRID, "Show 10x10 Grid");
+
 	menuBar->Append(optionsMenu, "&Menu");
+	menuBar->Append(gridMenu, "&Grid");
 
 
 
@@ -647,4 +672,6 @@ void MainWindow::CreateMenuBar() {
 	Bind(wxEVT_MENU, &MainWindow::OnToggleBoardType, this, ID_FINITE);
 	Bind(wxEVT_MENU, &MainWindow::OnToggleBoardType, this, ID_TOROIDAL);
 	Bind(wxEVT_MENU, &MainWindow::OnImport, this, ID_IMPORT);
+	Bind(wxEVT_MENU, &MainWindow::OnToggleShowGrid, this, ID_SHOW_GRID);
+	Bind(wxEVT_MENU, &MainWindow::OnToggleShow10x10Grid, this, ID_SHOW_10x10_GRID);
 }

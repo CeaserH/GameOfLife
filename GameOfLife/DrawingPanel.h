@@ -26,6 +26,8 @@ public:
 	void SetGridSize(int newGridSize);
 	void SetNeighborCounts(const std::vector<std::vector<int>>& counts);
 	void SetShowNeighborCount(bool show);
+	void SetShowGrid(bool show);
+	void SetShow10x10Grid(bool show);
 
 	wxDECLARE_EVENT_TABLE();
 
