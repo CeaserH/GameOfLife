@@ -3,11 +3,14 @@
 #include <vector>
 #include "Settings.h"
 
+class MainWindow;
+
 class DrawingPanel : public wxPanel {
 
 private:
 	
 	Settings* settings = nullptr;
+	MainWindow* mainWindow;
 	std::vector<std::vector<bool>>& gameBoard;
 	std::vector<std::vector<int>> neighborCounts;
 	bool showNeighborCount = false;
@@ -17,7 +20,7 @@ protected:
 	void OnMouseUp(wxMouseEvent& event);
 
 public:
-	DrawingPanel(wxWindow* parent, std::vector<std::vector<bool>>& gameBoardRef);
+	DrawingPanel(wxWindow* parent, std::vector<std::vector<bool>>& gameBoardRef, MainWindow* mainWindowRef);
 
 	~DrawingPanel();
 

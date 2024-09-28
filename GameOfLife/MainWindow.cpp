@@ -64,7 +64,7 @@ MainWindow::MainWindow(const wxString& title, const wxPoint& pos, const wxSize& 
 	toolbar->AddTool(ID_CLEAR, "Clear", trashIcon);
 	
 	//passing this as parent, instantiating drawingpanel
-	drawingPanel = new DrawingPanel(this, gameBoard);
+	drawingPanel = new DrawingPanel(this, gameBoard, this);
 	drawingPanel->SetSettings(&settings);
 
 	int cellSize = 20;  // Adjust based on your design
@@ -634,6 +634,11 @@ void MainWindow::OnToggleShow10x10Grid(wxCommandEvent& event) {
 	Refresh(); // Refresh the drawing panel
 }
 
+void MainWindow::OnToggleShowHUD(wxCommandEvent& event) {
+	settings.ShowHUD = !settings.ShowHUD;
+	Refresh(); // Refresh to update the drawing
+}
+
 void MainWindow::CreateMenuBar() {
 
 	wxMenuBar* menuBar = new wxMenuBar();
@@ -662,8 +667,14 @@ void MainWindow::CreateMenuBar() {
 	gridMenu->AppendCheckItem(ID_SHOW_GRID, "Show Grid");
 	gridMenu->AppendCheckItem(ID_SHOW_10x10_GRID, "Show 10x10 Grid");
 
+	wxMenu* hudMenu = new wxMenu();
+	hudMenu->AppendCheckItem(ID_VIEW_SHOW_HUD, "Show HUD");
+	hudMenu->Check(ID_VIEW_SHOW_HUD, settings.ShowHUD);
+	
+
 	menuBar->Append(optionsMenu, "&Menu");
 	menuBar->Append(gridMenu, "&Grid");
+	menuBar->Append(hudMenu, "&HUD");
 
 
 
@@ -674,4 +685,6 @@ void MainWindow::CreateMenuBar() {
 	Bind(wxEVT_MENU, &MainWindow::OnImport, this, ID_IMPORT);
 	Bind(wxEVT_MENU, &MainWindow::OnToggleShowGrid, this, ID_SHOW_GRID);
 	Bind(wxEVT_MENU, &MainWindow::OnToggleShow10x10Grid, this, ID_SHOW_10x10_GRID);
+	Bind(wxEVT_MENU, &MainWindow::OnToggleShowHUD, this, ID_VIEW_SHOW_HUD);
+
 }

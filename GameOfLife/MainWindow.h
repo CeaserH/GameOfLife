@@ -31,10 +31,10 @@ private:
     void InitGameBoard();
     void OnSizeChange(wxSizeEvent& event);
     void UpdateGame();
-    int CountLivingCells();
+    
     void UpdateStatusBar();
     int CountNeighbors(int x, int y);
-    void NextGeneration();
+    
     void CreateMenuBar();
     void RandomizeGrid(int seed);
     std::vector<std::vector<int>> CalculateNeighborCounts();
@@ -67,6 +67,7 @@ private:
     void OnImport(wxCommandEvent& event);
     void OnToggleShowGrid(wxCommandEvent& event);
     void OnToggleShow10x10Grid(wxCommandEvent& event);
+    void OnToggleShowHUD(wxCommandEvent& event);
 
     wxString currentFileName;
 
@@ -91,7 +92,8 @@ private:
         ID_RESET_SETTINGS,
         ID_EXIT,
         ID_SHOW_GRID,
-        ID_SHOW_10x10_GRID
+        ID_SHOW_10x10_GRID,
+        ID_VIEW_SHOW_HUD
     };
 
     wxDECLARE_EVENT_TABLE();
@@ -100,6 +102,9 @@ public:
     MainWindow(const wxString& title, const wxPoint& pos, const wxSize& size, App* app);
 	~MainWindow();
     void UpdateBasedOnSettings(const Settings& settings);
+    void NextGeneration();
+    int GetGenerationCount() const { return generationCount; };
+    int CountLivingCells();
     
 
 };

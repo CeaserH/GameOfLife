@@ -15,6 +15,7 @@ struct Settings {
 	bool showNeighborCount = false;
 	bool ShowGrid = true;
 	bool Show10x10Grid = false;
+	bool ShowHUD = false;
 
 	enum class BoardType { Finite, Toroidal };
 	BoardType boardType;
@@ -51,6 +52,7 @@ struct Settings {
 		}
 		file >> ShowGrid;
 		file >> Show10x10Grid;
+		file >> ShowHUD;
 	}
 
 	void Save() const {
@@ -62,6 +64,7 @@ struct Settings {
 
 		file << ShowGrid << std::endl;
 		file << Show10x10Grid << std::endl;
+		file << ShowHUD << std::endl;
 	}
 
 };

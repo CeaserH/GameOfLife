@@ -1,17 +1,20 @@
 #include "DrawingPanel.h"
 #include "Settings.h"
+#include "MainWindow.h"
 #include "wx/graphics.h"
 #include "wx/dcbuffer.h"
+#include <wx/font.h>
 
 wxBEGIN_EVENT_TABLE(DrawingPanel, wxPanel)
 	EVT_PAINT(DrawingPanel::OnPaint)
 	EVT_LEFT_UP(DrawingPanel::OnMouseUp)
 wxEND_EVENT_TABLE()
 
-DrawingPanel::DrawingPanel(wxWindow* parent, std::vector<std::vector<bool>>& gameBoardRef)
-	: wxPanel(parent), gameBoard(gameBoardRef), showNeighborCount(false) {
+DrawingPanel::DrawingPanel(wxWindow* parent, std::vector<std::vector<bool>>& gameBoardRef, MainWindow* mainWindow)
+	: wxPanel(parent), gameBoard(gameBoardRef), mainWindow(mainWindow), showNeighborCount(false)  {
 
 	//set custome background render
+	Bind(wxEVT_PAINT, &DrawingPanel::OnPaint, this);
 	this->SetBackgroundStyle(wxBG_STYLE_PAINT);
 	settings = nullptr;
 }
@@ -168,8 +171,38 @@ void DrawingPanel::OnPaint(wxPaintEvent& event) {
 			}
 		}
 	}
+
+
+	if (settings && settings->ShowHUD) {
+		//wxLogMessage("HUD is enabled"); // Debugging log
+
+		wxFont font(11, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+		context->SetFont(font, *wxBLACK); // Set font color to blue
+
+		// Get current counts without advancing generations
+		int livingCellsCount = mainWindow->CountLivingCells(); // Get living cells count
+		int generationCount = mainWindow->GetGenerationCount();
+
+		wxString hudText;
+		hudText += wxString::Format("Generations: %d\n", generationCount);
+		hudText += wxString::Format("Living Cells: %d\n", livingCellsCount);
+		hudText += wxString::Format("Boundary Type: %s\n", settings->boardType == Settings::BoardType::Toroidal ? "Toroidal" : "Finite");
+		hudText += wxString::Format("Universe Size: %d x %d\n", settings->gridSize, settings->gridSize);
+
+		//wxLogMessage("HUD Text: %s", hudText); // Log the HUD text
+
+		double textX, textY;
+		context->GetTextExtent(hudText, &textX, &textY);
+		double posX = 20; // Margin from left
+		double posY = panelHeight - textY - 20; // Margin from bottom
+
+		// Ensure position is within bounds
+		if (posY < 0) posY = 0;
+
+		context->DrawText(hudText, posX, posY);
+	}
 	//clean up
-	delete context;
+	//delete context;
 
 }
 
