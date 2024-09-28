@@ -553,6 +553,67 @@ void MainWindow::OnMenuSettings(wxCommandEvent& event) {
 	}
 }
 
+void MainWindow::ImportGameBoard(const wxString& fileName) {
+	wxTextFile file(fileName);
+
+	if (!file.Exists()) {
+		wxLogError("File does not exist: %s", fileName);
+		return;
+	}
+
+	file.Open();
+	std::vector<std::vector<bool>> pattern; // Temporary storage for the imported pattern
+
+	for (wxString line = file.GetFirstLine(); !file.Eof(); line = file.GetNextLine()) {
+		if (line[0] == '!') {
+			continue; // Skip comment lines
+		}
+
+		std::vector<bool> row;
+		for (wxChar c : line) {
+			row.push_back(c == '*');
+		}
+		pattern.push_back(row);
+	}
+
+	file.Close();
+
+	// Centering the pattern
+	int patternRows = pattern.size();
+	int patternCols = pattern.empty() ? 0 : pattern[0].size();
+
+	// Determine starting positions to center the pattern
+	int startRow = (settings.gridSize - patternRows) / 2;
+	int startCol = (settings.gridSize - patternCols) / 2;
+
+	// Import the pattern into the game board
+	for (int i = 0; i < patternRows; ++i) {
+		for (int j = 0; j < patternCols; ++j) {
+			if (startRow + i >= 0 && startRow + i < settings.gridSize &&
+				startCol + j >= 0 && startCol + j < settings.gridSize) {
+				gameBoard[startRow + i][startCol + j] = pattern[i][j];
+			}
+		}
+	}
+
+	// Update generation and living cell counts
+	livingCellsCount = CountLivingCells();
+	UpdateStatusBar();
+}
+
+void MainWindow::OnImport(wxCommandEvent& event) {
+	wxFileDialog importFileDialog(this, _("Import .cells file"), "", "",
+		"Cells files (*.cells)|*.cells", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+	if (importFileDialog.ShowModal() == wxID_CANCEL) {
+		return; // User canceled
+	}
+
+	wxString fileName = importFileDialog.GetPath();
+	ImportGameBoard(fileName);
+	drawingPanel->Refresh(); // Refresh to display the updated board
+}
+
 void MainWindow::CreateMenuBar() {
 
 	wxMenuBar* menuBar = new wxMenuBar();
@@ -560,6 +621,7 @@ void MainWindow::CreateMenuBar() {
 
 	optionsMenu->Append(ID_NEW, "New\tCtrl+N", "Clear the game board and start fresh");
 	optionsMenu->Append(ID_OPEN, "Open\tCtrl+O", "Open an existing .cells file");
+	optionsMenu->Append(ID_IMPORT, "Import\tCtrl+I", "Import an existing game board");
 	optionsMenu->Append(ID_SAVE, "Save\tCtrl+S", "Save the current game board");
 	optionsMenu->Append(ID_SAVE_AS, "Save As", "Save the current game board to a new file");
 	optionsMenu->Append(ID_MENU_SETTINGS, "Settings\tCtrl+S", "Open settings dialog");
@@ -584,4 +646,5 @@ void MainWindow::CreateMenuBar() {
 
 	Bind(wxEVT_MENU, &MainWindow::OnToggleBoardType, this, ID_FINITE);
 	Bind(wxEVT_MENU, &MainWindow::OnToggleBoardType, this, ID_TOROIDAL);
+	Bind(wxEVT_MENU, &MainWindow::OnImport, this, ID_IMPORT);
 }

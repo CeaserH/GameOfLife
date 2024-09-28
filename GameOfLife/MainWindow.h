@@ -26,6 +26,7 @@ private:
     int generationCount;
     int livingCellsCount;
     int interval;
+    // const int ID_IMPORT = wxNewId();
 
     void InitGameBoard();
     void OnSizeChange(wxSizeEvent& event);
@@ -62,6 +63,8 @@ private:
     
     void SaveGameBoard(const wxString& fileName);
     void LoadGameBoard(const wxString& fileName);
+    void ImportGameBoard(const wxString& fileName);
+    void OnImport(wxCommandEvent& event);
 
     wxString currentFileName;
 
@@ -73,6 +76,7 @@ private:
         ID_CLEAR,
         ID_NEW,
         ID_OPEN,
+        ID_IMPORT,
         ID_SAVE,
         ID_SAVE_AS,
         ID_SETTINGS,
