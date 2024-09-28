@@ -201,6 +201,8 @@ void DrawingPanel::OnPaint(wxPaintEvent& event) {
 
 		context->DrawText(hudText, posX, posY);
 	}
+
+
 	//clean up
 	//delete context;
 
